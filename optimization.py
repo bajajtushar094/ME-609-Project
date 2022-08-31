@@ -37,22 +37,80 @@ class basic_optimization():
         return eqn
 
 
+
+    def plot_range(self):
+        x_axis = []
+        y_axis = []
+
+        a = int(self.a)
+        b = int(self.b)
+
+        new_a = self.new_a
+        new_b = self.new_b
+
+        for i in np.linspace(a,b,1000):
+            y = self.equation(i)
+            x_axis.append(i)
+            y_axis.append(y)
+
+        fig= plt.figure()
+        axes=fig.add_subplot(111)
+        if self.__class__.__name__=="interval_halving_method":
+            plt.title("Plot of Range for Interval Halving method")
+        else :
+            plt.title("Plot of Range for Bounding Phase method")
+
+        axes.plot(x_axis, y_axis)
+        axes.plot([new_a], [self.equation(new_a)], 'ro')
+        axes.plot([new_b], [self.equation(new_b)], 'ro')
+        plt.show(block=False)
+
+
+
+
+    def plot_x_versus_iterations(self):
+        x = self.x
+        k = self.k
+
+        new_a = self.new_a
+        new_b = self.new_b
+
+        x_axis=[]
+
+        for i in range(0, k+1):
+            x_axis.append(i)
+
+        y_axis = x[abs(len(x_axis)-len(x)):]
+
+        fig= plt.figure()
+        axes=fig.add_subplot(111)
+
+        if self.__class__.__name__=="interval_halving_method":
+            plt.title("Iteration plot for Interval Halving method")
+        else :
+            plt.title("Iteration plot for Bounding Phase method")
+
+        axes.plot(x_axis, y_axis)
+
+        for i in range(0,len(y_axis)):
+            plt.plot(x_axis[i], y_axis[i], 'ro')
+        plt.show(block=False)
+
+
+
+
 class bounding_phase_method(basic_optimization):
     def __init__(self, a, b, maximize, part):
         super().__init__(a, b, maximize, part)
-        # self.x0 = random.uniform(a, b)
         self.x = [random.uniform(a, b)]
         self.delta = random.uniform(10**-9, 10**-12)
-        # self.x_array = [0.60]
-        # self.delta = [0.50]
-        # print(f"delta : {self.delta}")
 
     def minimize(self):
         k = 0
         a = self.a
         b = self.b
         x = self.x
-        delta = 10**-19
+        delta = self.delta
 
         f_x_minus_delta = super().equation(x[0]-delta)
         f_x = super().equation(x[0])
@@ -67,16 +125,11 @@ class bounding_phase_method(basic_optimization):
                 break
             else :
                 x = [random.uniform(a, b)]
-                delta = random.uniform(10**-9, 10**-12)
+                delta = random.uniform(10**-9, 10**-15)
 
             f_x_minus_delta = super().equation(x[0]-delta)
             f_x = super().equation(x[0])
             f_x_plus_delta = super().equation(x[0]+delta)
-
-        # if f_x_minus_delta >= f_x and f_x >= f_x_plus_delta :
-        #     delta = abs(delta)
-        # elif f_x_minus_delta <= f_x and f_x <= f_x_plus_delta :
-        #     delta = -1 * abs(delta)
 
         x.append(x[k] + ((2**k) * delta))
 
@@ -91,6 +144,8 @@ class bounding_phase_method(basic_optimization):
         self.x = x
         self.delta = delta
         self.k = k
+        self.new_a = self.x[self.k-1]
+        self.new_b = self.x[self.k+1]
 
 
     def results(self):
@@ -103,7 +158,7 @@ class interval_halving_method(basic_optimization):
         super().__init__(a, b, maximize, part)
         self.epsilon = math.pow(10, -1*random.randint(3, 7))
         self.l = b-a
-        self.x_array = []
+        self.x = []
 
     def minimize(self):
         a = self.a
@@ -111,6 +166,8 @@ class interval_halving_method(basic_optimization):
         epsilon = self.epsilon
         l = self.l
         x_m = a + (b-a)/2
+        self.x.append(x_m)
+        k=0
 
         while(abs(l)>epsilon):
             x_1 = a + l/4
@@ -132,41 +189,55 @@ class interval_halving_method(basic_optimization):
                     b = x_2
 
             l = b-a
-
+            self.x.append(x_m)
+            k = k+1
             print(f"A : {a}, B : {b} and X_M : {x_m}")
 
 
-        self.a = a
-        self.b = b
+        self.new_a = a
+        self.new_b = b
         self.l = (b-a)
+        self.k = k
 
     def results(self):
-        return self.a, self.b
-
-
-test1 = bounding_phase_method(-10, 0, True, 1)
-# test1 = interval_halving_method(-2, 1, True, 2)
-
-test1.minimize()
-
-x_k_minus_one, x_k_plus_one = test1.results()
-
-print(f"a : {x_k_minus_one}, b : {x_k_plus_one}")
-
-a = []
-b = []
-for i in range(-10,0):
-    y = test1.equation(i)
-    a.append(i)
-    b.append(y)
-
-fig= plt.figure()
-axes=fig.add_subplot(111)
-axes.plot(a,b)
-axes.plot([x_k_minus_one], [test1.equation(x_k_minus_one)], 'bo')
-axes.plot([x_k_plus_one], [test1.equation(x_k_plus_one)], 'bo')
-plt.show()
+        return self.new_a, self.new_b
 
 
 
 
+def main():
+    print("Enter a and b: ")
+    a = float(input())
+    b = float(input())
+
+    print("Enter the part to be solved: ")
+    part = int(input())
+
+    if part>6:
+        print("Please enter correct part to be solved!")
+        return 0
+
+    print("Wether the function has to be maximize or not. Enter Y/N: ")
+    maxi = input()
+
+    maxmize = False
+    if maxi=="Y":
+        maximize = True
+
+    bounding_phase = bounding_phase_method(a, b, maximize, part)
+    bounding_phase.minimize()
+    a_bounding_phase, b_bounding_phase = bounding_phase.results()
+    print(f"From bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+    bounding_phase.plot_range()
+    bounding_phase.plot_x_versus_iterations()
+
+    interval_halving = interval_halving_method(a_bounding_phase, b_bounding_phase, maximize, part)
+    interval_halving.minimize()
+    a_interval_halving, b_interval_halving = interval_halving.results()
+    print(f"From interval halving phase method => a : {a_interval_halving}, b : {b_interval_halving}")
+    interval_halving.plot_range()
+    interval_halving.plot_x_versus_iterations()
+
+    plt.show()
+
+main()
