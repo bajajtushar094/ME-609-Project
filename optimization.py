@@ -3,6 +3,11 @@ import math
 from re import A, X
 import numpy as np
 import matplotlib.pyplot as plt
+import calendar
+import time
+
+gmt = time.gmtime()
+ts = calendar.timegm(gmt)
 
 def truncate_decimals(x):
     return round(x, 4)
@@ -106,12 +111,13 @@ class bounding_phase_method(basic_optimization):
         self.delta = random.uniform(10**-9, 10**-12)
 
     def minimize(self):
+        out = open(f"./outputs/bounding_phase_method_part{self.part}.out", "w")
         k = 0
         a = self.a
         b = self.b
         x = self.x
         delta = self.delta
-
+        
         f_x_minus_delta = super().equation(x[0]-delta)
         f_x = super().equation(x[0])
         f_x_plus_delta = super().equation(x[0]+delta)
@@ -131,21 +137,37 @@ class bounding_phase_method(basic_optimization):
             f_x = super().equation(x[0])
             f_x_plus_delta = super().equation(x[0]+delta)
 
+        out.write(f"Solving part with Bounding Phase Method- {self.part} \n a : {a} \n b : {b} \n delta : {delta} \n")
+
+        out.write(f"#It\t\t\tx\t\t\tf_x\n")
+
         x.append(x[k] + ((2**k) * delta))
 
-        while(super().equation(x[k+1])<=super().equation(x[k])):
+        f_x_k_plus_one = super().equation(x[k+1])
+        f_x_k = super().equation(x[k])
+
+        while(f_x_k_plus_one<=f_x_k):
             
-
-            print(f"X value for k : {k} and x : {x[k] + ((2**k) * delta)}")
-
+            out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
+            print(f"X value for k : {k} and x : {x[k]}")
+            k=k+1
             x.append(x[k] + ((2**k) * delta))
-            k = k+1
+            
+            f_x_k = f_x_k_plus_one
+            f_x_k_plus_one = super().equation(x[k+1])
 
+        out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
+        print(f"X value for k : {k} and x : {x[k]}")
+        
         self.x = x
         self.delta = delta
         self.k = k
         self.new_a = self.x[self.k-1]
         self.new_b = self.x[self.k+1]
+
+        out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after bounding phase method")
+
+        out.close()
 
 
     def results(self):
@@ -161,6 +183,7 @@ class interval_halving_method(basic_optimization):
         self.x = []
 
     def minimize(self):
+        out = open(f"./outputs/interval_halving_method_part{self.part}.out", "w")
         a = self.a
         b = self.b
         epsilon = self.epsilon
@@ -168,6 +191,8 @@ class interval_halving_method(basic_optimization):
         x_m = a + (b-a)/2
         self.x.append(x_m)
         k=0
+        out.write(f"Continue Solving part - {self.part} with Interval Halving Method \n a : {a} \n b : {b} \n")
+        out.write(f"#It\t\t\ta\t\t\tb\t\t\tx_m\n")
 
         while(abs(l)>epsilon):
             x_1 = a + l/4
@@ -190,14 +215,19 @@ class interval_halving_method(basic_optimization):
 
             l = b-a
             self.x.append(x_m)
-            k = k+1
+            out.write(f"{k}\t\t\t{truncate_decimals(a)}\t\t\t{truncate_decimals(b)}\t\t\t{x_m}\n")
             print(f"A : {a}, B : {b} and X_M : {x_m}")
+            k = k+1
 
 
         self.new_a = a
         self.new_b = b
         self.l = (b-a)
         self.k = k
+
+        out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after interval halving method")
+
+        out.close()
 
     def results(self):
         return self.new_a, self.new_b
