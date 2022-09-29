@@ -65,6 +65,9 @@ class basic_optimization():
         else :
             plt.title("Plot of Range for Bounding Phase method")
 
+        plt.xlabel("x")
+        plt.ylabel("f(x)")
+
         axes.plot(x_axis, y_axis)
         axes.plot([new_a], [self.equation(new_a)], 'ro')
         axes.plot([new_b], [self.equation(new_b)], 'ro')
@@ -76,9 +79,6 @@ class basic_optimization():
     def plot_x_versus_iterations(self):
         x = self.x
         k = self.k
-
-        new_a = self.new_a
-        new_b = self.new_b
 
         x_axis=[]
 
@@ -94,6 +94,9 @@ class basic_optimization():
             plt.title("Iteration plot for Interval Halving method")
         else :
             plt.title("Iteration plot for Bounding Phase method")
+
+        plt.ylabel("X")
+        plt.xlabel("Number of iterations")
 
         axes.plot(x_axis, y_axis)
 
@@ -236,37 +239,43 @@ class interval_halving_method(basic_optimization):
 
 
 def main():
-    print("Enter a and b: ")
-    a = float(input())
-    b = float(input())
+    part = int(input("Enter a number between 1 and 6 to solve correspinding part of question: "))
 
-    print("Enter the part to be solved: ")
-    part = int(input())
+    a = float(input("Enter a : "))
+
+    b = float(input("Enter b : "))
 
     if part>6:
         print("Please enter correct part to be solved!")
         return 0
 
-    print("Wether the function has to be maximize or not. Enter Y/N: ")
-    maxi = input()
+    maxi = input("Wether the function has to be maximize or not. Enter Y/N: ")
 
-    maxmize = False
+    maximize = False
     if maxi=="Y":
         maximize = True
+
+    print(f"\n\n--------------------------------------------------\n\n")
 
     bounding_phase = bounding_phase_method(a, b, maximize, part)
     bounding_phase.minimize()
     a_bounding_phase, b_bounding_phase = bounding_phase.results()
-    print(f"From bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+    print(f"--------------------------------------------------")
+    print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
     bounding_phase.plot_range()
     bounding_phase.plot_x_versus_iterations()
+
+    print(f"\n\n--------------------------------------------------\n\n")
 
     interval_halving = interval_halving_method(a_bounding_phase, b_bounding_phase, maximize, part)
     interval_halving.minimize()
     a_interval_halving, b_interval_halving = interval_halving.results()
-    print(f"From interval halving phase method => a : {a_interval_halving}, b : {b_interval_halving}")
+    print(f"--------------------------------------------------")
+    print(f"Range from interval halving phase method => a : {a_interval_halving}, b : {b_interval_halving}")
     interval_halving.plot_range()
     interval_halving.plot_x_versus_iterations()
+
+    print(f"\n\n--------------------------------------------------\n\n")
 
     plt.show()
 
