@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import calendar
 import time
 
-gmt = time.gmtime()
+gmt = time.gmtime() 
 ts = calendar.timegm(gmt)
 
 def truncate_decimals(x):
@@ -72,6 +72,7 @@ class basic_optimization():
         axes.plot([new_a], [self.equation(new_a)], 'ro')
         axes.plot([new_b], [self.equation(new_b)], 'ro')
         plt.show(block=False)
+        plt.savefig(f"./graphs/range_plot_{self.__class__.__name__}_part{self.part}.png")
 
 
 
@@ -103,6 +104,7 @@ class basic_optimization():
         for i in range(0,len(y_axis)):
             plt.plot(x_axis[i], y_axis[i], 'ro')
         plt.show(block=False)
+        plt.savefig(f"./graphs/iterations_plot_{self.__class__.__name__}_part{self.part}.png")
 
 
 
@@ -121,9 +123,11 @@ class bounding_phase_method(basic_optimization):
         x = self.x
         delta = self.delta
         
-        f_x_minus_delta = super().equation(x[0]-delta)
+        f_x_minus_delta = super().equation(x[0]-delta)   
         f_x = super().equation(x[0])
         f_x_plus_delta = super().equation(x[0]+delta)
+
+        function_eval= 3
 
         while True:
             if f_x_minus_delta >= f_x and f_x >= f_x_plus_delta :
@@ -140,6 +144,8 @@ class bounding_phase_method(basic_optimization):
             f_x = super().equation(x[0])
             f_x_plus_delta = super().equation(x[0]+delta)
 
+            function_eval= function_eval+3
+
         out.write(f"Solving part with Bounding Phase Method- {self.part} \n a : {a} \n b : {b} \n delta : {delta} \n")
 
         out.write(f"#It\t\t\tx\t\t\tf_x\n")
@@ -149,26 +155,32 @@ class bounding_phase_method(basic_optimization):
         f_x_k_plus_one = super().equation(x[k+1])
         f_x_k = super().equation(x[k])
 
-        while(f_x_k_plus_one<=f_x_k):
+        
+        while(f_x_k_plus_one<=f_x_k): 
             
             out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
-            print(f"X value for k : {k} and x : {x[k]}")
+            print(f"X value for {k}th iteration and x : {x[k]}")
             k=k+1
             x.append(x[k] + ((2**k) * delta))
             
+            
             f_x_k = f_x_k_plus_one
+            
+            #Function Evaluation
             f_x_k_plus_one = super().equation(x[k+1])
+            function_eval = function_eval+1
 
         out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
-        print(f"X value for k : {k} and x : {x[k]}")
+        print(f"X value for {k}th iteration and x : {x[k]}")
         
         self.x = x
         self.delta = delta
         self.k = k
         self.new_a = self.x[self.k-1]
         self.new_b = self.x[self.k+1]
+        print(f"Total function evaluation for bounding phase method : {function_eval}")
 
-        out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after bounding phase method")
+        out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after bounding phase method for {k} iterations")
 
         out.close()
 
@@ -197,13 +209,21 @@ class interval_halving_method(basic_optimization):
         out.write(f"Continue Solving part - {self.part} with Interval Halving Method \n a : {a} \n b : {b} \n")
         out.write(f"#It\t\t\ta\t\t\tb\t\t\tx_m\n")
 
+        function_eval = 3
+        
         while(abs(l)>epsilon):
             x_1 = a + l/4
             x_2 = b - l/4
 
+            #Function Evaluation
             f_x_1 = super().equation(x_1)
+
+            #Function Evaluation
             f_x_2 = super().equation(x_2)
+            
+            #Function Evaluation
             f_x_m = super().equation(x_m)
+
 
             if f_x_1 < f_x_2:
                 b = x_m
@@ -219,14 +239,17 @@ class interval_halving_method(basic_optimization):
             l = b-a
             self.x.append(x_m)
             out.write(f"{k}\t\t\t{truncate_decimals(a)}\t\t\t{truncate_decimals(b)}\t\t\t{x_m}\n")
-            print(f"A : {a}, B : {b} and X_M : {x_m}")
+            print(f"For {k}th iteration, A : {a}, B : {b} and X_M : {x_m}")
             k = k+1
+            function_eval+=2
 
 
         self.new_a = a
         self.new_b = b
         self.l = (b-a)
         self.k = k
+
+        print(f"Total function evaluation for interval halving method: {function_eval}")
 
         out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after interval halving method")
 
