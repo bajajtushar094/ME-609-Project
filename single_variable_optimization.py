@@ -12,32 +12,45 @@ ts = calendar.timegm(gmt)
 def truncate_decimals(x):
     return round(x, 4)
 
-class basic_optimization():
-    def __init__(self, a, b, maximize, part):
-        self.a = a
-        self.b = b
-        self.maximize = maximize
+class Basic_optimization():
+    def __init__(self, part, n, m, x_k=np.array([]), s_k=np.array([])):
         self.part = part
+        self.n = n
+        self.m = m
+        self.x_k = x_k
+        self.s_k = s_k
 
-    def equation(self, x):  
-        if self.part==1:
-            eqn = (2*x-5)**4 - (x**2-1)**3
-        elif self.part==2:
-            eqn = 8 + x**3 - 2*x - 2 * math.exp(x)
-        elif self.part==3:
-            eqn = 4 * x * math.sin(x)
-        elif self.part==4:
-            eqn = 2 * (x-3)**2 + math.exp(0.5 * x**2)
-        elif self.part==5:
-            eqn = x**2 - 10*math.exp(0.1*x)
-        elif self.part==6:
-            eqn = 20*math.sin(x) -15 * x**2
-        elif self.part==7:
-            eqn = x**2 + 54/x
+    def equation(self, x):
+        if type(x) is not np.ndarray:
+            x = np.add(self.x_k, np.dot(x, self.s_k))
 
-        
-        if self.maximize==True:
-            eqn = -1*eqn
+        eqn = 0
+        if self.part == 1:
+            for i in range(0, len(x)):
+                eqn = eqn + round((i+1)*x[i]*x[i], 4)
+        elif self.part == 2:
+            for i in range(0, len(x)-1):
+                # a = (x[i+1]-x[i]*x[i])
+                # b = (x[i]-1)
+                eqn = eqn + ((100*(x[i+1]-x[i]*x[i])**2)+((x[i]-1)**2))
+        elif self.part == 3:
+            eqn = (x[0]-1)*(x[0]-1)
+            for i in range(1, len(x)):
+                eqn = eqn + (i+1)*((2*x[i]*x[i]-x[i-1])**2)
+        elif self.part == 4:
+            eqn = (x[0]-1)*(x[0]-1)
+            for i in range(1, len(x)):
+                eqn = eqn + (x[i]-1)**2 - x[i]*x[i-1]
+        elif self.part == 5:
+            inter_val = 0
+            for i in range(0, len(x)):
+                inter_val = inter_val + (1/2)*(i+1)*x[i]
+
+                eqn = eqn + x[i]*x[i]
+            
+            eqn = eqn + inter_val**2 + inter_val**4
+        elif self.part == 6:
+            eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
 
         return eqn
 
@@ -109,17 +122,18 @@ class basic_optimization():
 
 
 
-class bounding_phase_method(basic_optimization):
-    def __init__(self, a, b, maximize, part):
-        super().__init__(a, b, maximize, part)
-        self.x = [random.uniform(a, b)]
-        self.delta = random.uniform(10**-9, 10**-12)
+class Bounding_phase_method(Basic_optimization):
+    def __init__(self, part, n, m, x_k, s_k):
+        super().__init__(part, n, m, x_k, s_k)
+        self.x = np.random.rand(1)
+        # print("X values : ",self.x)
+        self.delta = 10**-3
 
     def minimize(self):
         out = open(f"./outputs/bounding_phase_method_part{self.part}.out", "w")
         k = 0
-        a = self.a
-        b = self.b
+        # a = self.a
+        # b = self.b
         x = self.x
         delta = self.delta
         
@@ -137,8 +151,8 @@ class bounding_phase_method(basic_optimization):
                 delta = -1 * abs(delta)
                 break
             else :
-                x = [random.uniform(a, b)]
-                delta = random.uniform(10**-9, 10**-15)
+                x = np.random.rand(1)
+                delta = 10**-12
 
             f_x_minus_delta = super().equation(x[0]-delta)
             f_x = super().equation(x[0])
@@ -146,11 +160,13 @@ class bounding_phase_method(basic_optimization):
 
             function_eval= function_eval+3
 
-        out.write(f"Solving part with Bounding Phase Method- {self.part} \n a : {a} \n b : {b} \n delta : {delta} \n")
+        #out.write(f"Solving part with Bounding Phase Method- {self.part} \n a : {a} \n b : {b} \n delta : {delta} \n")
 
         out.write(f"#It\t\t\tx\t\t\tf_x\n")
 
-        x.append(x[k] + ((2**k) * delta))
+        x = np.append(x, x[k] + ((2**k) * delta))
+
+        print("X :", x[k] + ((2**k) * delta))
 
         f_x_k_plus_one = super().equation(x[k+1])
         f_x_k = super().equation(x[k])
@@ -161,7 +177,7 @@ class bounding_phase_method(basic_optimization):
             out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
             print(f"X value for {k}th iteration and x : {x[k]}")
             k=k+1
-            x.append(x[k] + ((2**k) * delta))
+            x = np.append(x, x[k] + ((2**k) * delta))
             
             
             f_x_k = f_x_k_plus_one
@@ -190,12 +206,14 @@ class bounding_phase_method(basic_optimization):
 
 
 
-class interval_halving_method(basic_optimization):
-    def __init__(self, a, b, maximize, part):
-        super().__init__(a, b, maximize, part)
-        self.epsilon = math.pow(10, -1*random.randint(3, 7))
+class Interval_halving_method(Basic_optimization):
+    def __init__(self, a , b, part, n, m, x_k, s_k):
+        super().__init__(part, n, m, x_k, s_k)
+        self.epsilon = 10**-3
         self.l = b-a
-        self.x = []
+        self.x = np.array([])
+        self.a = a
+        self.b = b
 
     def minimize(self):
         out = open(f"./outputs/interval_halving_method_part{self.part}.out", "w")
@@ -204,7 +222,8 @@ class interval_halving_method(basic_optimization):
         epsilon = self.epsilon
         l = self.l
         x_m = a + (b-a)/2
-        self.x.append(x_m)
+        x = self.x
+        x = np.append(x, x_m)
         k=0
         out.write(f"Continue Solving part - {self.part} with Interval Halving Method \n a : {a} \n b : {b} \n")
         out.write(f"#It\t\t\ta\t\t\tb\t\t\tx_m\n")
@@ -237,7 +256,7 @@ class interval_halving_method(basic_optimization):
                     b = x_2
 
             l = b-a
-            self.x.append(x_m)
+            x = np.append(x, x_m)
             out.write(f"{k}\t\t\t{truncate_decimals(a)}\t\t\t{truncate_decimals(b)}\t\t\t{x_m}\n")
             print(f"For {k}th iteration, A : {a}, B : {b} and X_M : {x_m}")
             k = k+1
@@ -248,6 +267,7 @@ class interval_halving_method(basic_optimization):
         self.new_b = b
         self.l = (b-a)
         self.k = k
+        self.x = x
 
         print(f"Total function evaluation for interval halving method: {function_eval}")
 
@@ -257,8 +277,6 @@ class interval_halving_method(basic_optimization):
 
     def results(self):
         return self.new_a, self.new_b
-
-
 
 
 def main():
@@ -280,7 +298,7 @@ def main():
 
     print(f"\n\n--------------------------------------------------\n\n")
 
-    bounding_phase = bounding_phase_method(a, b, maximize, part)
+    bounding_phase = Bounding_phase_method(a, b, maximize, part)
     bounding_phase.minimize()
     a_bounding_phase, b_bounding_phase = bounding_phase.results()
     print(f"--------------------------------------------------")
@@ -290,7 +308,7 @@ def main():
 
     print(f"\n\n--------------------------------------------------\n\n")
 
-    interval_halving = interval_halving_method(a_bounding_phase, b_bounding_phase, maximize, part)
+    interval_halving = Interval_halving_method(a_bounding_phase, b_bounding_phase, maximize, part)
     interval_halving.minimize()
     a_interval_halving, b_interval_halving = interval_halving.results()
     print(f"--------------------------------------------------")
@@ -302,4 +320,5 @@ def main():
 
     plt.show()
 
-# main()
+if __name__ == "__main__":
+    main()

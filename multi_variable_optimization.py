@@ -2,7 +2,6 @@ from single_variable_optimization import *
 import numpy as np
 import numdifftools as nd
 
-
 class Multi_optimization():
     def __init__(self, n, part, m):
         self.n = n
@@ -43,30 +42,23 @@ class Multi_optimization():
         return eqn
 
 
-class Marquardt_method(Multi_optimization):
+class Marquardt_method(Basic_optimization):
     def __init__(self, n, part, m):
         self.ld = 100
         self.epsilon = 10**-3
-        super().__init__(n, part, m)
+        self.x = np.random.rand(n)
+        super().__init__(part, n, m)
         
 
     def minimize(self):
         k = 0
         x = self.x
         ld = self.ld
-        print("Initial Value : ", x)
-
         
         while(True):
-            print(f"X value at iteration {k} : ", x)
-            print("Function Value : ", self.equation(x))
             f_grad = nd.Gradient(self.equation)(x)
 
             f_norm = np.linalg.norm(f_grad)
-
-            print("F grad : ", f_grad)
-
-            print("F norm : ", f_norm)
 
             if f_norm<=self.epsilon or k>=self.m:
                 break
@@ -78,29 +70,36 @@ class Marquardt_method(Multi_optimization):
             while True:
                 hessian = Hessian_func(x)
 
-                print("Hessian : ", hessian)
-
+                print(f"n = {self.n}")
                 iden = np.dot(ld, np.identity(self.n, dtype=float))
-
-                print("Identity : ", iden)
 
                 inverse = np.linalg.inv(np.add(hessian,iden))
 
-                print("Inverse : ", inverse)
-
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
-                # aplha = 0.1
+                # aplha = 1
 
                 # alpha_s_k = np.dot(aplha, s_k)
 
                 # eqn_aplha_s_k = self.equation(alpha_s_k)
 
-                print("S_k : ", s_k)
+                bounding_phase_method = Bounding_phase_method(self.part, self.n, self.m, x, s_k)
+                bounding_phase_method.minimize()
+                a_bounding_phase, b_bounding_phase = bounding_phase_method.results()
 
-                print(f"X value before addition in iteration {k} : ", x)
-                x_plus_one = np.add(x, s_k)
-                print(f"X value after addition in iteration {k} : ", x)
+                print(f"--------------------------------------------------")
+                print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+
+                interval_halving_method = Interval_halving_method(a_bounding_phase, b_bounding_phase, self.part, self.n, self.m, x, s_k)
+                interval_halving_method.minimize()
+                a_interval_halving, b_interval_halving = interval_halving_method.results()
+                
+                alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
+
+                print(f"--------------------------------------------------")
+                print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+
+                x_plus_one = np.add(x, np.dot(alpha, s_k))
 
                 if self.equation(x_plus_one)<=self.equation(x):
                     break
@@ -110,10 +109,7 @@ class Marquardt_method(Multi_optimization):
 
             ld = ld/2
             x = x_plus_one
-            print("ld : ", ld)
             k=k+1
-
-        print("Iteration : ", k)
 
         self.x = x
 
