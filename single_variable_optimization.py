@@ -13,16 +13,20 @@ def truncate_decimals(x):
     return round(x, 4)
 
 class Basic_optimization():
-    def __init__(self, part, n, m, x_k=np.array([]), s_k=np.array([])):
+    def __init__(self, multi, maximize, part, x, x_k=np.array([]), s_k=np.array([])):
+        self.multi = multi
+        self.maximize = maximize
         self.part = part
-        self.n = n
-        self.m = m
         self.x_k = x_k
         self.s_k = s_k
+        print("X: ", x)
+        self.x = x
 
     def equation(self, x):
-        if type(x) is not np.ndarray:
+        if len(self.x_k)!=0 and len(self.s_k)!=0 : 
             x = np.add(self.x_k, np.dot(x, self.s_k))
+        else:
+            x = np.array([x])
 
         eqn = 0
         if self.part == 1:
@@ -49,8 +53,25 @@ class Basic_optimization():
                 eqn = eqn + x[i]*x[i]
             
             eqn = eqn + inter_val**2 + inter_val**4
-        elif self.part == 6:
+        elif self.part==6:
+            eqn = (2*x[len(x)-1]-5)**4 - (x[len(x)-1]**2-1)**3
+        elif self.part==7:
+            eqn = 8 + x[len(x)-1]**3 - 2*x[len(x)-1] - 2 * math.exp(x[len(x)-1])
+        elif self.part==8:
+            eqn = 4 * x[len(x)-1] * math.sin(x[len(x)-1])
+        elif self.part==9:
+            eqn = 2 * (x[len(x)-1]-3)**2 + math.exp(0.5 * x[len(x)-1]**2)
+        elif self.part==10:
+            eqn = x[len(x)-1]**2 - 10*math.exp(0.1*x[len(x)-1])
+        elif self.part==11:
+            eqn = 20*math.sin(x[len(x)-1]) -15 * x[len(x)-1]**2
+        elif self.part==12:
+            eqn = x[len(x)-1]**2 + 54/x[len(x)-1]        
+        elif self.part == 13:
             eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
+
+        if self.maximize == True:
+            eqn = -1*eqn
 
         return eqn
 
@@ -73,7 +94,7 @@ class Basic_optimization():
 
         fig= plt.figure()
         axes=fig.add_subplot(111)
-        if self.__class__.__name__=="interval_halving_method":
+        if self.__class__.__name__=="Interval_halving_method":
             plt.title("Plot of Range for Interval Halving method")
         else :
             plt.title("Plot of Range for Bounding Phase method")
@@ -82,8 +103,8 @@ class Basic_optimization():
         plt.ylabel("f(x)")
 
         axes.plot(x_axis, y_axis)
-        axes.plot([new_a], [self.equation(new_a)], 'ro')
-        axes.plot([new_b], [self.equation(new_b)], 'ro')
+        axes.plot([new_a], self.equation(new_a), 'ro')
+        axes.plot([new_b], self.equation(new_b), 'ro')
         plt.show(block=False)
         plt.savefig(f"./graphs/range_plot_{self.__class__.__name__}_part{self.part}.png")
 
@@ -94,17 +115,17 @@ class Basic_optimization():
         x = self.x
         k = self.k
 
-        x_axis=[]
+        x_axis=np.array([])
 
         for i in range(0, k+1):
-            x_axis.append(i)
+            x_axis = np.append(x_axis, i)
 
         y_axis = x[abs(len(x_axis)-len(x)):]
 
         fig= plt.figure()
         axes=fig.add_subplot(111)
 
-        if self.__class__.__name__=="interval_halving_method":
+        if self.__class__.__name__=="Interval_halving_method":
             plt.title("Iteration plot for Interval Halving method")
         else :
             plt.title("Iteration plot for Bounding Phase method")
@@ -123,11 +144,17 @@ class Basic_optimization():
 
 
 class Bounding_phase_method(Basic_optimization):
-    def __init__(self, part, n, m, x_k, s_k):
-        super().__init__(part, n, m, x_k, s_k)
-        self.x = np.random.rand(1)
+    def __init__(self, multi, maximize, part, x_k=[], s_k=[], a=0, b=0):
+        if a!=0 and b!=0:
+            x = np.array([random.uniform(a, b)])
+        else:
+            x = np.array([random.random()])
+
+        self.a = a
+        self.b = b
         # print("X values : ",self.x)
         self.delta = 10**-3
+        super().__init__(multi, maximize, part, x, x_k, s_k)
 
     def minimize(self):
         out = open(f"./outputs/bounding_phase_method_part{self.part}.out", "w")
@@ -207,13 +234,13 @@ class Bounding_phase_method(Basic_optimization):
 
 
 class Interval_halving_method(Basic_optimization):
-    def __init__(self, a , b, part, n, m, x_k, s_k):
-        super().__init__(part, n, m, x_k, s_k)
+    def __init__(self, multi, maximize, part, x_k=[], s_k=[], a=0, b=0):
         self.epsilon = 10**-3
         self.l = b-a
-        self.x = np.array([])
         self.a = a
         self.b = b
+        x = np.array([])
+        super().__init__(part, multi, maximize, x, x_k, s_k)
 
     def minimize(self):
         out = open(f"./outputs/interval_halving_method_part{self.part}.out", "w")
@@ -280,15 +307,15 @@ class Interval_halving_method(Basic_optimization):
 
 
 def main():
-    part = int(input("Enter a number between 1 and 6 to solve correspinding part of question: "))
+    part = 5+int(input("Enter a number between 1 and 6 to solve correspinding part of question: "))
 
     a = float(input("Enter a : "))
 
     b = float(input("Enter b : "))
 
-    if part>6:
-        print("Please enter correct part to be solved!")
-        return 0
+    # if part>6:
+    #     print("Please enter correct part to be solved!")
+    #     return 0
 
     maxi = input("Wether the function has to be maximize or not. Enter Y/N: ")
 
@@ -298,7 +325,7 @@ def main():
 
     print(f"\n\n--------------------------------------------------\n\n")
 
-    bounding_phase = Bounding_phase_method(a, b, maximize, part)
+    bounding_phase = Bounding_phase_method(False, maximize, part, a=a, b=b)
     bounding_phase.minimize()
     a_bounding_phase, b_bounding_phase = bounding_phase.results()
     print(f"--------------------------------------------------")
@@ -308,7 +335,7 @@ def main():
 
     print(f"\n\n--------------------------------------------------\n\n")
 
-    interval_halving = Interval_halving_method(a_bounding_phase, b_bounding_phase, maximize, part)
+    interval_halving = Interval_halving_method(False, maximize, part, a=a_bounding_phase, b=b_bounding_phase)
     interval_halving.minimize()
     a_interval_halving, b_interval_halving = interval_halving.results()
     print(f"--------------------------------------------------")

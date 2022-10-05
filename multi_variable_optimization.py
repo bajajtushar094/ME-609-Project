@@ -1,12 +1,14 @@
 from single_variable_optimization import *
 import numpy as np
 import numdifftools as nd
+import pandas as pd
+import time
 
 class Multi_optimization():
-    def __init__(self, n, part, m):
+    def __init__(self, part, n, m):
         self.n = n
         self.x = np.random.rand(n)
-        # print("X :", self.x)
+        print("X :", self.x)
         self.part = part
         self.m = m
 
@@ -42,11 +44,11 @@ class Multi_optimization():
         return eqn
 
 
-class Marquardt_method(Basic_optimization):
-    def __init__(self, n, part, m):
+class Marquardt_method(Multi_optimization):
+    def __init__(self, part, n, m):
         self.ld = 100
         self.epsilon = 10**-3
-        self.x = np.random.rand(n)
+        #self.x = np.random.rand(n)
         super().__init__(part, n, m)
         
 
@@ -77,20 +79,14 @@ class Marquardt_method(Basic_optimization):
 
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
-                # aplha = 1
-
-                # alpha_s_k = np.dot(aplha, s_k)
-
-                # eqn_aplha_s_k = self.equation(alpha_s_k)
-
-                bounding_phase_method = Bounding_phase_method(self.part, self.n, self.m, x, s_k)
+                bounding_phase_method = Bounding_phase_method(True, False, self.part, x_k = x, s_k = s_k)
                 bounding_phase_method.minimize()
                 a_bounding_phase, b_bounding_phase = bounding_phase_method.results()
 
                 print(f"--------------------------------------------------")
                 print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                interval_halving_method = Interval_halving_method(a_bounding_phase, b_bounding_phase, self.part, self.n, self.m, x, s_k)
+                interval_halving_method = Interval_halving_method(True, False, self.part, x_k=x, s_k=s_k, a=a_bounding_phase, b=b_bounding_phase)
                 interval_halving_method.minimize()
                 a_interval_halving, b_interval_halving = interval_halving_method.results()
                 
@@ -114,30 +110,32 @@ class Marquardt_method(Basic_optimization):
         self.x = x
 
     def results(self):
-        return self.x, 
-
+        return self.x
 
 def main():
-    part = int(input("Enter a number between 1 and 6 to solve correspinding part of question: "))
+    df = pd.read_csv('./ME609_Project.csv')
+    
+    for i, row in df.iterrows():
+        part, n, m = row['part'], row['n'], row['m']
 
-    n = int(input("Enter n : "))
+        if part>5:
+            print("Value of part should be less than or equals to 5")
+            continue
 
-    m = int(input("Enter m : "))
+        print(f"--------------------------------------------------------------")
 
-    if part>6:
-        print("Please enter correct part to be solved!")
-        return 0
+        marquardt = Marquardt_method(part, n, m)
+        marquardt.minimize()
 
-    print(f"--------------------------------------------------------------")
+        print(f"--------------------------------------------------------------")
+        print(f"Results from marquardt method for row {i+1}: {marquardt.results()}")
 
-    marquardt = Marquardt_method(n, part, m)
-    marquardt.minimize()
-
-    print(f"--------------------------------------------------------------")
-    print(f"Results from marquardt method : {marquardt.results()}")
+        time.sleep(10)
 
 
-main()
+
+if __name__ == "__main__":
+    main()
     
 
 
