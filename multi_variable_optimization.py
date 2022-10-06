@@ -149,14 +149,14 @@ class Marquardt_method(Multi_optimization):
 
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
-                bounding_phase_method = Bounding_phase_method(True, False, self.part, x_k = x, s_k = s_k)
+                bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
                 bounding_phase_method.minimize()
                 a_bounding_phase, b_bounding_phase = bounding_phase_method.results()
 
                 print(f"--------------------------------------------------")
                 print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                interval_halving_method = Interval_halving_method(True, False, self.part, x_k=x, s_k=s_k, a=a_bounding_phase, b=b_bounding_phase)
+                interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
                 interval_halving_method.minimize()
                 a_interval_halving, b_interval_halving = interval_halving_method.results()
                 
@@ -176,6 +176,7 @@ class Marquardt_method(Multi_optimization):
             ld = ld/2
             x = x_plus_one
             k=k+1
+            print(f"Iterations consumed : {k}")
 
         self.x = x
 
@@ -183,7 +184,7 @@ class Marquardt_method(Multi_optimization):
         return self.x
 
 def main():
-    df = pd.read_csv('./ME609_Project_rough.csv')
+    df = pd.read_csv('./ME609_Project.csv')
     
     for i, row in df.iterrows():
         part, n, m = row['part'], row['n'], row['m']
@@ -204,7 +205,7 @@ def main():
 
 
 def cal_grad():
-    df = pd.read_csv('./ME609_Project_rough.csv')
+    df = pd.read_csv('./ME609_Project.csv')
     
     for i, row in df.iterrows():
         part, n, m = row['part'], row['n'], row['m']
@@ -215,7 +216,7 @@ def cal_grad():
 
         print(f"--------------------------------------------------------------")
 
-        marquardt = Marquardt_method(1, 5, 100)
+        marquardt = Marquardt_method(part, n, m)
         # marquardt.gradient(marquardt.x)
         marquardt.hessian(marquardt.x)
 
