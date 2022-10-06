@@ -16,7 +16,7 @@ class Multi_optimization():
         eqn = 0
         if self.part == 1:
             for i in range(0, len(x)):
-                eqn = eqn + round((i+1)*x[i]*x[i], 4)
+                eqn = eqn + (i+1)*x[i]*x[i]
         elif self.part == 2:
             for i in range(0, len(x)-1):
                 # a = (x[i+1]-x[i]*x[i])
@@ -42,6 +42,75 @@ class Multi_optimization():
             eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
 
         return eqn
+
+
+
+    def gradient(self, x):
+        epsilon = 2.34E-10
+
+        grads = np.array([])
+        f_x = self.equation(x)
+
+        for i in range(self.n):
+            x_plus = x.copy()
+            x_minus = x.copy()
+            x_plus[i] = x_plus[i]+epsilon
+            x_minus[i] = x_minus[i]-epsilon
+
+            grads = np.append(grads, ((self.equation(x_plus)-self.equation(x_minus))/(2*epsilon)))
+
+        #print(f"Grads calculated : {grads} \n Grads from library : {nd.Gradient(self.equation)(x)}")
+
+        return grads
+
+    def hessian(self, x):
+        hess = np.eye(self.n, self.n)
+
+        f_x = self.equation(x)
+        epsilon = 10**-6
+
+        for i in range(self.n):
+            for j in range(self.n):
+                x_plus = x.copy()
+                x_minus = x.copy()
+                if i==j:
+                    x_plus[i] = x_plus[i]+epsilon
+                    x_minus[i] = x_minus[i]-epsilon
+                    # print(f"x_plus : \n {x_plus}")
+                    hess[i][i] = (self.equation(x_plus)+self.equation(x_minus)-2*f_x)/(epsilon**2)
+                else:
+                    x_plus_i_plus_j = x.copy()
+                    x_plus_i_plus_j[i] = x_plus_i_plus_j[i]+epsilon
+                    x_plus_i_plus_j[j] = x_plus_i_plus_j[j]+epsilon
+
+                    x_plus_i_minus_j = x.copy()
+                    x_plus_i_minus_j[i] = x_plus_i_minus_j[i]+epsilon
+                    x_plus_i_minus_j[j] = x_plus_i_minus_j[j]-epsilon
+
+                    x_minus_i_plus_j = x.copy()
+                    x_minus_i_plus_j[i] = x_minus_i_plus_j[i]-epsilon
+                    x_minus_i_plus_j[j] = x_minus_i_plus_j[j]+epsilon
+
+                    x_minus_i_minus_j = x.copy()
+                    x_minus_i_minus_j[i] = x_minus_i_minus_j[i]-epsilon
+                    x_minus_i_minus_j[j] = x_minus_i_minus_j[j]-epsilon
+
+                    hess[i][j] = (self.equation(x_plus_i_plus_j)+self.equation(x_minus_i_minus_j)-self.equation(x_plus_i_minus_j)-self.equation(x_minus_i_plus_j))/(4*epsilon*epsilon)
+
+                    #hess[j][i] = hess[i][j]
+
+                    print(f"Hess value for position {i}, {j}: {hess[i][j]} and {self.equation(x_plus_i_plus_j)+self.equation(x_minus_i_minus_j)-self.equation(x_plus_i_minus_j)-self.equation(x_minus_i_plus_j)}")
+
+        Hessian_func = nd.Hessian(self.equation)
+
+        hessian_lib = Hessian_func(x)
+
+        print(f"Hessain calculated : \n {hess} \n Hessian from library : \n {hessian_lib}")
+
+        return hess
+
+                
+
 
 
 class Marquardt_method(Multi_optimization):
@@ -70,12 +139,13 @@ class Marquardt_method(Multi_optimization):
             hessian = Hessian_func(x)
 
             while True:
-                hessian = Hessian_func(x)
+                #hessian = Hessian_func(x)
+                hessian_mat = self.hessian(x)
 
                 print(f"n = {self.n}")
                 iden = np.dot(ld, np.identity(self.n, dtype=float))
 
-                inverse = np.linalg.inv(np.add(hessian,iden))
+                inverse = np.linalg.inv(np.add(hessian_mat,iden))
 
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
@@ -113,7 +183,7 @@ class Marquardt_method(Multi_optimization):
         return self.x
 
 def main():
-    df = pd.read_csv('./ME609_Project.csv')
+    df = pd.read_csv('./ME609_Project_rough.csv')
     
     for i, row in df.iterrows():
         part, n, m = row['part'], row['n'], row['m']
@@ -133,8 +203,26 @@ def main():
         time.sleep(10)
 
 
+def cal_grad():
+    df = pd.read_csv('./ME609_Project_rough.csv')
+    
+    for i, row in df.iterrows():
+        part, n, m = row['part'], row['n'], row['m']
+
+        # if part>5:
+        #     print("Value of part should be less than or equals to 5")
+        #     continue
+
+        print(f"--------------------------------------------------------------")
+
+        marquardt = Marquardt_method(1, 5, 100)
+        # marquardt.gradient(marquardt.x)
+        marquardt.hessian(marquardt.x)
+
+        time.sleep(10)
 
 if __name__ == "__main__":
+    #cal_grad()
     main()
     
 

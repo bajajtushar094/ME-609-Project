@@ -31,7 +31,7 @@ class Basic_optimization():
         eqn = 0
         if self.part == 1:
             for i in range(0, len(x)):
-                eqn = eqn + round((i+1)*x[i]*x[i], 4)
+                eqn = eqn + (i+1)*x[i]*x[i]
         elif self.part == 2:
             for i in range(0, len(x)-1):
                 # a = (x[i+1]-x[i]*x[i])
