@@ -3,12 +3,13 @@ import numpy as np
 import numdifftools as nd
 import pandas as pd
 import time
+import matplotlib.pyplot as plt
 
 class Multi_optimization():
     def __init__(self, part, n, m):
         self.n = n
-        self.x = np.random.rand(n)
-        print("X :", self.x)
+        self.x = np.random.randn(n)
+        # self.x = np.array([1,1,1,0])
         self.part = part
         self.m = m
 
@@ -59,8 +60,6 @@ class Multi_optimization():
 
             grads = np.append(grads, ((self.equation(x_plus)-self.equation(x_minus))/(2*epsilon)))
 
-        #print(f"Grads calculated : {grads} \n Grads from library : {nd.Gradient(self.equation)(x)}")
-
         return grads
 
     def hessian(self, x):
@@ -70,13 +69,12 @@ class Multi_optimization():
         epsilon = 10**-6
 
         for i in range(self.n):
-            for j in range(self.n):
+            for j in range(i+1):
                 x_plus = x.copy()
                 x_minus = x.copy()
                 if i==j:
                     x_plus[i] = x_plus[i]+epsilon
                     x_minus[i] = x_minus[i]-epsilon
-                    # print(f"x_plus : \n {x_plus}")
                     hess[i][i] = (self.equation(x_plus)+self.equation(x_minus)-2*f_x)/(epsilon**2)
                 else:
                     x_plus_i_plus_j = x.copy()
@@ -97,15 +95,7 @@ class Multi_optimization():
 
                     hess[i][j] = (self.equation(x_plus_i_plus_j)+self.equation(x_minus_i_minus_j)-self.equation(x_plus_i_minus_j)-self.equation(x_minus_i_plus_j))/(4*epsilon*epsilon)
 
-                    #hess[j][i] = hess[i][j]
-
-                    print(f"Hess value for position {i}, {j}: {hess[i][j]} and {self.equation(x_plus_i_plus_j)+self.equation(x_minus_i_minus_j)-self.equation(x_plus_i_minus_j)-self.equation(x_minus_i_plus_j)}")
-
-        Hessian_func = nd.Hessian(self.equation)
-
-        hessian_lib = Hessian_func(x)
-
-        print(f"Hessain calculated : \n {hess} \n Hessian from library : \n {hessian_lib}")
+                    hess[j][i] = hess[i][j]
 
         return hess
 
@@ -123,24 +113,26 @@ class Marquardt_method(Multi_optimization):
 
     def minimize(self):
         k = 0
+        n = self.n
         x = self.x
         ld = self.ld
+        func_eva = 0
         
         while(True):
-            f_grad = nd.Gradient(self.equation)(x)
+            f_grad = self.gradient(x)
+            func_eva += 2*n
 
             f_norm = np.linalg.norm(f_grad)
 
             if f_norm<=self.epsilon or k>=self.m:
                 break
             
-            Hessian_func = nd.Hessian(self.equation)
-
-            hessian = Hessian_func(x)
+            f_x = self.equation(x)
+            func_eva+=1
 
             while True:
-                #hessian = Hessian_func(x)
                 hessian_mat = self.hessian(x)
+                func_eva += 2*n*n + 1
 
                 print(f"n = {self.n}")
                 iden = np.dot(ld, np.identity(self.n, dtype=float))
@@ -151,14 +143,17 @@ class Marquardt_method(Multi_optimization):
 
                 bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
                 bounding_phase_method.minimize()
-                a_bounding_phase, b_bounding_phase = bounding_phase_method.results()
+                a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
 
+                func_eva+=func_eva_bounding_phase
                 print(f"--------------------------------------------------")
                 print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
                 interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
                 interval_halving_method.minimize()
-                a_interval_halving, b_interval_halving = interval_halving_method.results()
+                a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
+                
+                func_eva+= func_eva_interval_halving
                 
                 alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
 
@@ -167,24 +162,42 @@ class Marquardt_method(Multi_optimization):
 
                 x_plus_one = np.add(x, np.dot(alpha, s_k))
 
-                if self.equation(x_plus_one)<=self.equation(x):
+                func_eva+=1
+                if self.equation(x_plus_one)<=f_x:
                     break
 
                 ld = 2*ld
-                #x = x_plus_one
 
             ld = ld/2
             x = x_plus_one
             k=k+1
-            print(f"Iterations consumed : {k}")
-
+            
+        
+        print(f"Iterations used : {k}")
+        print(f"Total Function evaluations : {func_eva}")
+        self.k = k
         self.x = x
+        self.func_eva = func_eva
 
     def results(self):
-        return self.x
+        return self.x, self.k, self.func_eva
+
+
+
+def histogram(x_axis, y_axis, part, ylabel):
+    #plt.ylim(min(y_axis)-1, max(y_axis)+2)
+    plt.xlabel("Dimension of input")
+    plt.ylabel("Number of {ylabel}")
+    plt.title(f"Plot of dimesion vs iterations for question {part}")
+    plt.bar(x_axis, y_axis, color='blue', width=0.3)
+    plt.savefig(f"./phase_2_graphs/bar_plots/{ylabel}/question_{part}.png")
+
 
 def main():
-    df = pd.read_csv('./ME609_Project.csv')
+    df = pd.read_csv('./ME609_Project_rough.csv')
+    xs = []
+    itrs = []
+    func_evas = []
     
     for i, row in df.iterrows():
         part, n, m = row['part'], row['n'], row['m']
@@ -199,33 +212,35 @@ def main():
         marquardt.minimize()
 
         print(f"--------------------------------------------------------------")
-        print(f"Results from marquardt method for row {i+1}: {marquardt.results()}")
+        x, itr, func_eva = marquardt.results()
+        xs.append(x)
+        itrs.append(itr)
+        func_evas.append(func_eva)
+        print(f"Results from marquardt method for row {i+1}: {x}")
 
-        time.sleep(10)
+        time.sleep(2)
 
+def create_histogram_plots():
 
-def cal_grad():
-    df = pd.read_csv('./ME609_Project.csv')
-    
-    for i, row in df.iterrows():
-        part, n, m = row['part'], row['n'], row['m']
+    for i in range(1, 6):
+        itrs=[]
+        func_evas = []
+        for j in range(1, 6):
+            print(f"--------------------------------------------------------------")
+            marquardt = Marquardt_method(i, j, 100)
+            marquardt.minimize()
+            print(f"--------------------------------------------------------------")
+            x, itr, func_eva = marquardt.results()
+            itrs.append(itr)
+            func_evas.append(func_eva)
+            print(f"Results from marquardt method for row {i+1}: {x}")
 
-        # if part>5:
-        #     print("Value of part should be less than or equals to 5")
-        #     continue
-
-        print(f"--------------------------------------------------------------")
-
-        marquardt = Marquardt_method(part, n, m)
-        # marquardt.gradient(marquardt.x)
-        marquardt.hessian(marquardt.x)
-
-        time.sleep(10)
+        histogram([1,2,3,4,5], itrs, i, "iterations")
+        histogram([1,2,3,4,5], func_evas, i, "function evaluations")
 
 if __name__ == "__main__":
-    #cal_grad()
-    main()
-    
+    #main()
+    create_histogram_plots()
 
 
 

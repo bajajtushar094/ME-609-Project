@@ -162,7 +162,7 @@ class Bounding_phase_method(Basic_optimization):
 
         x = np.append(x, x[k] + ((2**k) * delta))
 
-        print("X :", x[k] + ((2**k) * delta))
+        #print("X :", x[k] + ((2**k) * delta))
 
         f_x_k_plus_one = super().equation(x[k+1])
         f_x_k = super().equation(x[k])
@@ -171,7 +171,7 @@ class Bounding_phase_method(Basic_optimization):
         while(f_x_k_plus_one<=f_x_k): 
             
             out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
-            print(f"X value for {k}th iteration and x : {x[k]}")
+            #print(f"X value for {k}th iteration and x : {x[k]}")
             k=k+1
             x = np.append(x, x[k] + ((2**k) * delta))
             
@@ -183,13 +183,14 @@ class Bounding_phase_method(Basic_optimization):
             function_eval = function_eval+1
 
         out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
-        print(f"X value for {k}th iteration and x : {x[k]}")
+        #print(f"X value for {k}th iteration and x : {x[k]}")
         
         self.x = x
         self.delta = delta
         self.k = k
         self.new_a = self.x[self.k-1]
         self.new_b = self.x[self.k+1]
+        self.func_eva = function_eval
         print(f"Total function evaluation for bounding phase method : {function_eval}")
 
         out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after bounding phase method for {k} iterations")
@@ -198,7 +199,7 @@ class Bounding_phase_method(Basic_optimization):
 
 
     def results(self):
-        return self.x[self.k-1], self.x[self.k+1]
+        return self.x[self.k-1], self.x[self.k+1], self.func_eva
 
 
 
@@ -254,7 +255,7 @@ class Interval_halving_method(Basic_optimization):
             l = b-a
             x = np.append(x, x_m)
             out.write(f"{k}\t\t\t{truncate_decimals(a)}\t\t\t{truncate_decimals(b)}\t\t\t{x_m}\n")
-            print(f"For {k}th iteration, A : {a}, B : {b} and X_M : {x_m}")
+            #print(f"For {k}th iteration, A : {a}, B : {b} and X_M : {x_m}")
             k = k+1
             function_eval+=2
 
@@ -264,6 +265,7 @@ class Interval_halving_method(Basic_optimization):
         self.l = (b-a)
         self.k = k
         self.x = x
+        self.func_eva = function_eval
 
         print(f"Total function evaluation for interval halving method: {function_eval}")
 
@@ -272,4 +274,4 @@ class Interval_halving_method(Basic_optimization):
         out.close()
 
     def results(self):
-        return self.new_a, self.new_b
+        return self.new_a, self.new_b, self.func_eva
