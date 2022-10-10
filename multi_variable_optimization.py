@@ -6,10 +6,11 @@ import time
 import matplotlib.pyplot as plt
 
 class Multi_optimization():
-    def __init__(self, part, n, m):
+    def __init__(self, part, n, m, x):
         self.n = n
-        self.x = np.random.randn(n)
-        # self.x = np.array([1,1,1,0])
+        self.x = np.random.rand(n)
+        print("Initial value for x : ", self.x)
+        #self.x = np.array(x)
         self.part = part
         self.m = m
 
@@ -104,11 +105,11 @@ class Multi_optimization():
 
 
 class Marquardt_method(Multi_optimization):
-    def __init__(self, part, n, m):
+    def __init__(self, part, n, m, x):
         self.ld = 100
         self.epsilon = 10**-3
         #self.x = np.random.rand(n)
-        super().__init__(part, n, m)
+        super().__init__(part, n, m, x)
         
 
     def minimize(self):
@@ -141,26 +142,28 @@ class Marquardt_method(Multi_optimization):
 
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
-                bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
-                bounding_phase_method.minimize()
-                a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
+                # bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
+                # bounding_phase_method.minimize()
+                # a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
 
-                func_eva+=func_eva_bounding_phase
-                print(f"--------------------------------------------------")
-                print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                # func_eva+=func_eva_bounding_phase
+                # print(f"--------------------------------------------------")
+                # print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
-                interval_halving_method.minimize()
-                a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
+                # interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
+                # interval_halving_method.minimize()
+                # a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
                 
-                func_eva+= func_eva_interval_halving
+                # func_eva+= func_eva_interval_halving
                 
-                alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
+                # alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
 
-                print(f"--------------------------------------------------")
-                print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                # print(f"--------------------------------------------------")
+                # print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                x_plus_one = np.add(x, np.dot(alpha, s_k))
+                #x_plus_one = np.add(x, np.dot(alpha, s_k))
+
+                x_plus_one = np.add(x, s_k)
 
                 func_eva+=1
                 if self.equation(x_plus_one)<=f_x:
@@ -208,7 +211,7 @@ def main():
 
         print(f"--------------------------------------------------------------")
 
-        marquardt = Marquardt_method(part, n, m)
+        marquardt = Marquardt_method(part, n, m, [1, -1, 1, -1, 1])
         marquardt.minimize()
 
         print(f"--------------------------------------------------------------")
@@ -217,6 +220,8 @@ def main():
         itrs.append(itr)
         func_evas.append(func_eva)
         print(f"Results from marquardt method for row {i+1}: {x}")
+        print(f"Iterations for part {part} : {itr}")
+        print(f"function evaluation for part {part} : {func_eva}")
 
         time.sleep(2)
 
@@ -239,9 +244,8 @@ def create_histogram_plots():
         histogram([1,2,3,4,5], func_evas, i, "function evaluations")
 
 if __name__ == "__main__":
-    #main()
-    create_histogram_plots()
-
+    main()
+    #create_histogram_plots()
 
 
 
