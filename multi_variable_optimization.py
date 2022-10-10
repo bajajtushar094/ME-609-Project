@@ -9,8 +9,8 @@ class Multi_optimization():
     def __init__(self, part, n, m, x):
         self.n = n
         self.x = np.random.rand(n)
-        print("Initial value for x : ", self.x)
         #self.x = np.array(x)
+        print("Initial value for x : ", self.x)
         self.part = part
         self.m = m
 
@@ -100,9 +100,6 @@ class Multi_optimization():
 
         return hess
 
-                
-
-
 
 class Marquardt_method(Multi_optimization):
     def __init__(self, part, n, m, x):
@@ -118,6 +115,7 @@ class Marquardt_method(Multi_optimization):
         x = self.x
         ld = self.ld
         func_eva = 0
+        x_array = []
         
         while(True):
             f_grad = self.gradient(x)
@@ -142,28 +140,28 @@ class Marquardt_method(Multi_optimization):
 
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
-                # bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
-                # bounding_phase_method.minimize()
-                # a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
+                bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
+                bounding_phase_method.minimize()
+                a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
 
-                # func_eva+=func_eva_bounding_phase
-                # print(f"--------------------------------------------------")
-                # print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                func_eva+=func_eva_bounding_phase
+                print(f"--------------------------------------------------")
+                print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                # interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
-                # interval_halving_method.minimize()
-                # a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
+                interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
+                interval_halving_method.minimize()
+                a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
                 
-                # func_eva+= func_eva_interval_halving
+                func_eva+= func_eva_interval_halving
                 
-                # alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
+                alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
 
-                # print(f"--------------------------------------------------")
-                # print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                print(f"--------------------------------------------------")
+                print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                #x_plus_one = np.add(x, np.dot(alpha, s_k))
+                x_plus_one = np.add(x, np.dot(alpha, s_k))
 
-                x_plus_one = np.add(x, s_k)
+                #x_plus_one = np.add(x, s_k)
 
                 func_eva+=1
                 if self.equation(x_plus_one)<=f_x:
@@ -173,6 +171,7 @@ class Marquardt_method(Multi_optimization):
 
             ld = ld/2
             x = x_plus_one
+            x_array.append(x)
             k=k+1
             
         
@@ -181,6 +180,7 @@ class Marquardt_method(Multi_optimization):
         self.k = k
         self.x = x
         self.func_eva = func_eva
+        self.x_array = x_array
 
     def results(self):
         return self.x, self.k, self.func_eva
@@ -188,12 +188,19 @@ class Marquardt_method(Multi_optimization):
 
 
 def histogram(x_axis, y_axis, part, ylabel):
-    #plt.ylim(min(y_axis)-1, max(y_axis)+2)
+    plt.ylim(0, max(y_axis)+4)
     plt.xlabel("Dimension of input")
-    plt.ylabel("Number of {ylabel}")
+    plt.ylabel(f"Number of {ylabel}")
     plt.title(f"Plot of dimesion vs iterations for question {part}")
-    plt.bar(x_axis, y_axis, color='blue', width=0.3)
+    plt.bar(x= x_axis, height = y_axis, color='blue', width=0.3)
+
+    for i in range(0,len(y_axis)):
+        plt.plot(x_axis[i], y_axis[i], 'green')
+
+    plt.plot(x_axis, y_axis, color='red')
+
     plt.savefig(f"./phase_2_graphs/bar_plots/{ylabel}/question_{part}.png")
+    plt.figure().clear()
 
 
 def main():
@@ -211,7 +218,7 @@ def main():
 
         print(f"--------------------------------------------------------------")
 
-        marquardt = Marquardt_method(part, n, m, [1, -1, 1, -1, 1])
+        marquardt = Marquardt_method(part, n, m, [0.333, 0])
         marquardt.minimize()
 
         print(f"--------------------------------------------------------------")
@@ -230,22 +237,25 @@ def create_histogram_plots():
     for i in range(1, 6):
         itrs=[]
         func_evas = []
-        for j in range(1, 6):
+        for j in range(1, 11):
             print(f"--------------------------------------------------------------")
-            marquardt = Marquardt_method(i, j, 100)
+            marquardt = Marquardt_method(i, j, 100, [])
             marquardt.minimize()
             print(f"--------------------------------------------------------------")
             x, itr, func_eva = marquardt.results()
             itrs.append(itr)
             func_evas.append(func_eva)
-            print(f"Results from marquardt method for row {i+1}: {x}")
+            print(f"Results from marquardt method for part {i} and dimension {j} : {x}")
+            print(f"Iterations for part {i} and dimension {j} : {type(itr)}")
+            print(f"function evaluation for part {i} and dimension {j} : {func_eva}")
 
-        histogram([1,2,3,4,5], itrs, i, "iterations")
-        histogram([1,2,3,4,5], func_evas, i, "function evaluations")
+        print(f"Iterations recovered {itrs}: ")
+        histogram([1,2,3,4,5,6,7,8,9,10], itrs, i, "iterations")
+        histogram([1,2,3,4,5,6,7,8,9,10], func_evas, i, "function evaluations")
 
 if __name__ == "__main__":
-    main()
-    #create_histogram_plots()
+    #main()
+    create_histogram_plots()
 
 
 
