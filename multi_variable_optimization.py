@@ -169,6 +169,44 @@ class Multi_optimization():
 
         plt.savefig(f"./phase_2_graphs/iteration_plots/dim_{self.n}/question_{self.part}.png")
 
+    def function_plot(self):
+        a, b = self.getrange()
+        x = np.linspace(a,b,250)
+        y = np.linspace(a,b,250)
+
+        X, Y = np.meshgrid(x, y)
+
+        x_test = np.stack((X, Y), axis=0)
+        Z = self.equation(x_test)
+
+        #print(x_test)
+        print(np.array(self.x_array)[:,0])
+
+        fig = plt.figure(figsize = (16,8))
+
+        iter_x = self.x_array[:,0]
+        iter_y = self.x_array[:,0]
+
+        anglesx = iter_x[1:] - iter_x[:-1]
+        anglesy = iter_y[1:] - iter_y[:-1]
+
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
+        ax.plot_surface(X,Y,Z,rstride = 5, cstride = 5, cmap = 'jet', alpha = .4, edgecolor = 'none' )
+        ax.plot(iter_x,iter_y, self.equation(np.stack((iter_x, iter_y), axis=0)),color = 'r', marker = '*', alpha = .4)
+
+        ax.view_init(45, 280)
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+
+        ax = fig.add_subplot(1, 2, 2)
+        ax.contour(X,Y,Z, 50, cmap = 'jet')
+        #Plotting the iterations and intermediate values
+        ax.scatter(iter_x,iter_y,color = 'r', marker = '*')
+        ax.quiver(iter_x[:-1], iter_y[:-1], anglesx, anglesy, scale_units = 'xy', angles = 'xy', scale = 1, color = 'r', alpha = .3)
+        ax.set_title('Gradient Descent with {} iterations'.format(self.k))
+
+        plt.savefig(f"./phase_2_graphs/function_plots/question_{self.part}.png")
+
 
 class Marquardt_method(Multi_optimization):
     def __init__(self, part, n, m, user_input, x):
@@ -188,6 +226,7 @@ class Marquardt_method(Multi_optimization):
         f_x_array = []
         
         while(True):
+            x_array.append(x)
             f_grad = self.gradient(x)
             func_eva += 2*n
 
@@ -249,7 +288,6 @@ class Marquardt_method(Multi_optimization):
 
             ld = ld/2
             x = x_plus_one
-            x_array.append(x)
             k=k+1
             
         
@@ -258,7 +296,7 @@ class Marquardt_method(Multi_optimization):
         self.k = k
         self.x = x
         self.func_eva = func_eva
-        self.x_array = x_array
+        self.x_array = np.array(x_array)
         self.f_x_array = f_x_array
 
     def results(self):
@@ -303,8 +341,18 @@ def main():
 
         time.sleep(3)
 
+def rough():
+
+    for i in range(1,6):
+        marquardt = Marquardt_method(i, 2, 100, "N", [36,36])
+        marquardt.minimize()
+
+        marquardt.function_plot()
+
+
 if __name__ == "__main__":
-    main()
+    #main()
+    rough()
 
 
 

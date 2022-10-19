@@ -5,7 +5,7 @@ def histogram(x_axis, y_axis, part, ylabel):
     plt.ylim(0, max(y_axis)+4)
     plt.xlabel("Dimension of input")
     plt.ylabel(f"Number of {ylabel}")
-    plt.title(f"Plot of dimesion vs iterations for question {part}")
+    plt.title(f"Plot of dimesion vs {ylabel} for question {part}")
     plt.bar(x= x_axis, height = y_axis, color='blue', width=0.3)
 
     for i in range(0,len(y_axis)):
