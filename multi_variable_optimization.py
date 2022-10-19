@@ -6,12 +6,18 @@ import time
 import matplotlib.pyplot as plt
 
 class Multi_optimization():
-    def __init__(self, part, n, m, x):
+    def __init__(self, part, n, m, user_input, x):
         self.n = n
-        self.x = np.random.rand(n)
-        #self.x = np.array(x)
-        print("Initial value for x : ", self.x)
         self.part = part
+        a,b = self.getrange()
+
+        if user_input=="N":
+            self.x = np.random.uniform(low=a, high=b, size=(n))
+            #self.x = np.random.rand(n)
+        else :
+            self.x = np.array(x)
+
+        print("Initial value for x : ", self.x)
         self.m = m
 
     def equation(self, x):
@@ -100,13 +106,76 @@ class Multi_optimization():
 
         return hess
 
+    def checkRestart(self, mat, f_grad, inverse):
+        if np.all(np.linalg.eigvals(mat) >= 0):
+            if np.matmul(np.matmul(f_grad, inverse), f_grad)<=0:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+
+    def getrange(self):
+        part = self.part
+        n = self.n
+
+        if part == 1:
+            a = -5.12
+            b = 5.12
+        elif part == 2:
+            a = -2.048
+            b = 2.048
+        elif part == 3:
+            a = -10.0
+            b = 10.0
+        elif part == 4:
+            a = -(n**2)
+            b = n**2
+        elif part== 5:
+            a = -5.0
+            b = 10.0
+        elif part==6:
+            a = -5.0
+            b = 5.0
+            
+        return a, b
+
+    def plot_f_x_versus_iterations(self):
+        x = self.f_x_array
+        print(f"f_x_array : {x}")
+        k = self.k
+
+        x_axis=np.array([])
+
+        for i in range(1, k+1):
+            x_axis = np.append(x_axis, i)
+
+        y_axis = x[abs(len(x_axis)-len(x)):]
+
+        fig= plt.figure()
+        axes=fig.add_subplot(111)
+
+        plt.title("Plot for Iterations vs Objective Function Value")
+
+        plt.ylabel("F_X")
+        plt.xlabel("Number of iterations")
+
+        axes.plot(x_axis, y_axis)
+
+        for i in range(0,len(y_axis)):
+            plt.plot(x_axis[i], y_axis[i], 'ro')
+        # plt.show(block=False)
+
+        plt.savefig(f"./phase_2_graphs/iteration_plots/dim_{self.n}/question_{self.part}.png")
+
 
 class Marquardt_method(Multi_optimization):
-    def __init__(self, part, n, m, x):
+    def __init__(self, part, n, m, user_input, x):
         self.ld = 100
-        self.epsilon = 10**-3
+        self.epsilon = 10**-6
         #self.x = np.random.rand(n)
-        super().__init__(part, n, m, x)
+        super().__init__(part, n, m, user_input, x)
         
 
     def minimize(self):
@@ -116,6 +185,7 @@ class Marquardt_method(Multi_optimization):
         ld = self.ld
         func_eva = 0
         x_array = []
+        f_x_array = []
         
         while(True):
             f_grad = self.gradient(x)
@@ -127,6 +197,7 @@ class Marquardt_method(Multi_optimization):
                 break
             
             f_x = self.equation(x)
+            f_x_array.append(f_x)
             func_eva+=1
 
             while True:
@@ -137,6 +208,12 @@ class Marquardt_method(Multi_optimization):
                 iden = np.dot(ld, np.identity(self.n, dtype=float))
 
                 inverse = np.linalg.inv(np.add(hessian_mat,iden))
+                
+                if self.checkRestart(np.add(hessian_mat,iden), f_grad, inverse):
+                    print("RESTART CONDITION MET!!!")
+                    time.sleep(2)
+                    self.x = np.random.rand(n)
+                    self.minimize()
 
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
@@ -161,6 +238,7 @@ class Marquardt_method(Multi_optimization):
 
                 x_plus_one = np.add(x, np.dot(alpha, s_k))
 
+                
                 #x_plus_one = np.add(x, s_k)
 
                 func_eva+=1
@@ -181,81 +259,52 @@ class Marquardt_method(Multi_optimization):
         self.x = x
         self.func_eva = func_eva
         self.x_array = x_array
+        self.f_x_array = f_x_array
 
     def results(self):
         return self.x, self.k, self.func_eva
 
 
 
-def histogram(x_axis, y_axis, part, ylabel):
-    plt.ylim(0, max(y_axis)+4)
-    plt.xlabel("Dimension of input")
-    plt.ylabel(f"Number of {ylabel}")
-    plt.title(f"Plot of dimesion vs iterations for question {part}")
-    plt.bar(x= x_axis, height = y_axis, color='blue', width=0.3)
-
-    for i in range(0,len(y_axis)):
-        plt.plot(x_axis[i], y_axis[i], 'green')
-
-    plt.plot(x_axis, y_axis, color='red')
-
-    plt.savefig(f"./phase_2_graphs/bar_plots/{ylabel}/question_{part}.png")
-    plt.figure().clear()
-
-
 def main():
-    df = pd.read_csv('./ME609_Project_rough.csv')
+    filename = input("Enter name of input file : ")
+    df = pd.read_csv(f'./{filename}')
     xs = []
     itrs = []
     func_evas = []
     
     for i, row in df.iterrows():
-        part, n, m = row['part'], row['n'], row['m']
+        print(f"Input received from row {i}: {row}")
+        time.sleep(1)
+        part, n, m, user_input, x_string = row['part'], row['n'], row['m'], row['user_input'], row['x']
 
         if part>5:
             print("Value of part should be less than or equals to 5")
             continue
 
         print(f"--------------------------------------------------------------")
+        x_array=[]
 
-        marquardt = Marquardt_method(part, n, m, [0.333, 0])
+        for k in list(x_string.split(",")):
+            x_array.append(float(k))
+
+        marquardt = Marquardt_method(part, n, m, user_input, x_array)
         marquardt.minimize()
 
         print(f"--------------------------------------------------------------")
-        x, itr, func_eva = marquardt.results()
-        xs.append(x)
+        x_result, itr, func_eva = marquardt.results()
+        xs.append(x_result)
         itrs.append(itr)
         func_evas.append(func_eva)
-        print(f"Results from marquardt method for row {i+1}: {x}")
+        print(x_result)
+        print(f"Results from marquardt method for part {int(part)}", x_result)
         print(f"Iterations for part {part} : {itr}")
         print(f"function evaluation for part {part} : {func_eva}")
 
-        time.sleep(2)
-
-def create_histogram_plots():
-
-    for i in range(1, 6):
-        itrs=[]
-        func_evas = []
-        for j in range(1, 11):
-            print(f"--------------------------------------------------------------")
-            marquardt = Marquardt_method(i, j, 100, [])
-            marquardt.minimize()
-            print(f"--------------------------------------------------------------")
-            x, itr, func_eva = marquardt.results()
-            itrs.append(itr)
-            func_evas.append(func_eva)
-            print(f"Results from marquardt method for part {i} and dimension {j} : {x}")
-            print(f"Iterations for part {i} and dimension {j} : {type(itr)}")
-            print(f"function evaluation for part {i} and dimension {j} : {func_eva}")
-
-        print(f"Iterations recovered {itrs}: ")
-        histogram([1,2,3,4,5,6,7,8,9,10], itrs, i, "iterations")
-        histogram([1,2,3,4,5,6,7,8,9,10], func_evas, i, "function evaluations")
+        time.sleep(3)
 
 if __name__ == "__main__":
-    #main()
-    create_histogram_plots()
+    main()
 
 
 
