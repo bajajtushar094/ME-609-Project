@@ -4,11 +4,14 @@ import numdifftools as nd
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
+import xlwt
+from xlwt import Workbook
 
 class Multi_optimization():
     def __init__(self, part, n, m, user_input, x):
         self.n = n
         self.part = part
+        self.wb = Workbook()
         a,b = self.getrange()
 
         if user_input=="N":
@@ -19,6 +22,21 @@ class Multi_optimization():
 
         print("Initial value for x : ", self.x)
         self.m = m
+
+    def get_function_name(self):
+
+        if self.part == 1:
+            return "Sum Squares" 
+        elif self.part == 2:
+            return "Rosenbrock" 
+        elif self.part == 3:
+            return "Dixon Price"
+        elif self.part == 4:
+            return "Trid"
+        elif self.part == 5:
+            return "Zakharox"
+        elif self.part == 6:
+            return "Himmelblau"    
 
     def equation(self, x):
         eqn = 0
@@ -50,7 +68,6 @@ class Multi_optimization():
             eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
 
         return eqn
-
 
 
     def gradient(self, x):
@@ -225,7 +242,24 @@ class Marquardt_method(Multi_optimization):
         x_array = []
         f_x_array = []
         
+        sheet1 = self.wb.add_sheet('Sheet 1')
+        
+        sheet1.write(0, 0, f"Function Name")
+        sheet1.write(0, 1, f"{self.get_function_name()} Function")
+        sheet1.write(1, 0, "Dimension")
+        sheet1.write(1, 1, self.n)
+        sheet1.write(2, 0, "Lower Bound")
+        a, b = self.getrange()
+        sheet1.write(2, 1, a)
+        sheet1.write(3, 0, "Upper Bound")
+        sheet1.write(3, 1, b)
+        
+        row_excel = 6
         while(True):
+            sheet1.write(row_excel, 0, f"X_{k}")
+            sheet1.write(row_excel, 1, np.array_str(x))
+            row_excel+=1
+
             x_array.append(x)
             f_grad = self.gradient(x)
             func_eva += 2*n
@@ -299,6 +333,26 @@ class Marquardt_method(Multi_optimization):
         self.x_array = np.array(x_array)
         self.f_x_array = f_x_array
 
+        row_excel += 3
+
+        sheet1.write(row_excel, 0, "iterations")
+        sheet1.write(row_excel, 1, k)
+        row_excel+=1
+
+        sheet1.write(row_excel, 0, "function evaluations")
+        sheet1.write(row_excel, 1, func_eva)
+        row_excel+=1
+
+        sheet1.write(row_excel, 0, "Final Answer")
+        sheet1.write(row_excel, 1, np.array_str(x))
+        row_excel+=1
+
+        self.wb.save(f"./phase_2_outputs/Marquardt_question_{self.part}_dim_{self.n}.xls")
+
+
+
+
+
     def results(self):
         return self.x, self.k, self.func_eva
 
@@ -341,18 +395,10 @@ def main():
 
         time.sleep(3)
 
-def rough():
-
-    for i in range(1,6):
-        marquardt = Marquardt_method(i, 2, 100, "N", [36,36])
-        marquardt.minimize()
-
-        marquardt.function_plot()
-
 
 if __name__ == "__main__":
-    #main()
-    rough()
+    main()
+    #rough()
 
 
 
