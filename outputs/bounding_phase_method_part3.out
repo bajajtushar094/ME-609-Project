@@ -1,10 +1,9 @@
 #It			x			f_x
-0		0.8721		0.0
-1		0.8731		0.0
-2		0.8751		0.0
-3		0.8791		0.0
-4		0.8871		0.0
-5		0.9031		0.0
-6		0.9351		0.0
-7		0.9991		0.0
-Value for new a : 0.9350622078750132 and new b : 1.1270622078750132 after bounding phase method for 7 iterations
+0		0.936		0.0
+1		0.937		0.0
+2		0.939		0.0
+3		0.943		0.0
+4		0.951		0.0
+5		0.967		0.0
+6		0.999		0.0
+Value for new a : 0.96704416796131 and new b : 1.06304416796131 after bounding phase method for 6 iterations

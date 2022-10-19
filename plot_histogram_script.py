@@ -24,7 +24,7 @@ def create_histogram_plots():
         func_evas = []
         for j in range(1, 11):
             print(f"--------------------------------------------------------------")
-            marquardt = Marquardt_method(i, j, 100, [5, 5, 5])
+            marquardt = Marquardt_method(i, j, 100,"N", [5, 5, 5])
             marquardt.minimize()
             print(f"--------------------------------------------------------------")
             x, itr, func_eva = marquardt.results()
