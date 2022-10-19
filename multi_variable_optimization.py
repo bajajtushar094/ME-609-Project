@@ -156,7 +156,7 @@ class Multi_optimization():
         fig= plt.figure()
         axes=fig.add_subplot(111)
 
-        plt.title("Plot for Iterations vs Objective Function Value")
+        plt.title(f"Plot for Iterations vs Objective Function Value for dimension : {self.n}")
 
         plt.ylabel("F_X")
         plt.xlabel("Number of iterations")
