@@ -7,7 +7,10 @@ import matplotlib.pyplot as plt
 import xlwt
 from xlwt import Workbook
 
+# Base Class for Multi Variate Optimization
 class Multi_optimization():
+
+    #Constructor for Base Class
     def __init__(self, part, n, m, user_input, x):
         self.n = n
         self.part = part
@@ -15,14 +18,16 @@ class Multi_optimization():
         a,b = self.getrange()
 
         if user_input=="N":
-            #self.x = np.random.uniform(low=a, high=b, size=(n))
-            self.x = np.random.rand(n)
+            self.x = np.random.uniform(low=a, high=b, size=(n))
+            #self.x = np.random.randn(n)
         else :
             self.x = np.array(x[0:n])
 
         print("Initial value for x : ", self.x)
         self.m = m
 
+
+    #Get Function Name corresponding to part entered
     def get_function_name(self):
 
         if self.part == 1:
@@ -38,6 +43,7 @@ class Multi_optimization():
         elif self.part == 6:
             return "Himmelblau"    
 
+    #Get Function value at vector x
     def equation(self, x):
         eqn = 0
         if self.part == 1:
@@ -69,7 +75,7 @@ class Multi_optimization():
 
         return eqn
 
-
+    #function for calculating gradient
     def gradient(self, x):
         epsilon = 2.34E-10
 
@@ -86,6 +92,7 @@ class Multi_optimization():
 
         return grads
 
+    #function for calculating Hessian matrix
     def hessian(self, x):
         hess = np.eye(self.n, self.n)
 
@@ -123,6 +130,7 @@ class Multi_optimization():
 
         return hess
 
+    #function to check restart condition
     def checkRestart(self, mat, f_grad, inverse):
         if np.all(np.linalg.eigvals(mat) >= 0):
             if np.matmul(np.matmul(f_grad, inverse), f_grad)<=0:
@@ -132,7 +140,7 @@ class Multi_optimization():
         else:
             return False
 
-
+    #function to get range of the question
     def getrange(self):
         part = self.part
         n = self.n
@@ -158,6 +166,7 @@ class Multi_optimization():
             
         return a, b
 
+    #function for plotting f_x vs iteration graph
     def plot_f_x_versus_iterations(self):
         x = self.f_x_array
         print(f"f_x_array : {x}")
@@ -186,6 +195,7 @@ class Multi_optimization():
 
         plt.savefig(f"./phase_2_graphs/iteration_plots/dim_{self.n}/question_{self.part}.png")
 
+    #function to plot Surface and Countor plots of the question
     def function_plot(self):
         a, b = self.getrange()
         x = np.linspace(-2,2,250)
@@ -225,14 +235,16 @@ class Multi_optimization():
         plt.savefig(f"./phase_2_graphs/function_plots/question_{self.part}.png")
 
 
+#Class for Marquardt Method: it extends Multi_optimization class
 class Marquardt_method(Multi_optimization):
+
+    #Constructor for Marquardt Method
     def __init__(self, part, n, m, user_input, x):
         self.ld = 100
         self.epsilon = 10**-6
-        #self.x = np.random.rand(n)
         super().__init__(part, n, m, user_input, x)
         
-
+    #Marquart Method
     def minimize(self):
         k = 0
         n = self.n
@@ -242,8 +254,10 @@ class Marquardt_method(Multi_optimization):
         x_array = []
         f_x_array = []
         
+        #Store output in the excel file
         sheet1 = self.wb.add_sheet('Sheet 1')
         
+        #Entries for excel file
         sheet1.write(0, 0, f"Function Name")
         sheet1.write(0, 1, f"{self.get_function_name()} Function")
         sheet1.write(1, 0, "Dimension")
@@ -261,11 +275,17 @@ class Marquardt_method(Multi_optimization):
             row_excel+=1
 
             x_array.append(x)
+
+            #Calculate gradient at x
             f_grad = self.gradient(x)
+
+            #Function evaluation for Gradient
             func_eva += 2*n
 
+            #Calculate norm of Gradient at x    
             f_norm = np.linalg.norm(f_grad)
 
+            #Break the outer loop if Norm of Gradient at x is less than epsilon or Iteration have increased beyond M
             if f_norm<=self.epsilon or k>=self.m:
                 break
             
@@ -274,54 +294,70 @@ class Marquardt_method(Multi_optimization):
             func_eva+=1
 
             while True:
+                #Calculate Hessian Matrix
                 hessian_mat = self.hessian(x)
+                #Function evaluation for Hessian Matrix is (2*N^2+1)
                 func_eva += 2*n*n + 1
 
-                print(f"n = {self.n}")
+                #lambda * Indentity Matrix
                 iden = np.dot(ld, np.identity(self.n, dtype=float))
 
+                #Calculating the inverse
                 inverse = np.linalg.inv(np.add(hessian_mat,iden))
                 
+                #Check for restart condition
                 if self.checkRestart(np.add(hessian_mat,iden), f_grad, inverse):
                     print("RESTART CONDITION MET!!!")
                     time.sleep(2)
                     self.x = np.random.rand(n)
                     self.minimize()
 
+                #Calculate Direction of descent at x
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
+                #Optimize to get value of alpha
                 bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
                 bounding_phase_method.minimize()
                 a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
 
+                #Add function evaluations from bounding phase method
                 func_eva+=func_eva_bounding_phase
                 print(f"--------------------------------------------------")
                 print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
+                #Call Interval Halving Method by giving the results of Bounding Phase Method
                 interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
                 interval_halving_method.minimize()
                 a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
                 
+                #Add function evaluations from Interval Halving Method
                 func_eva+= func_eva_interval_halving
                 
+                #Use average value of Lower and Upper bounds from Interval Halving Method
                 alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
 
                 print(f"--------------------------------------------------")
                 print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
+                #Calculate value of X_k+1
                 x_plus_one = np.add(x, np.dot(alpha, s_k))
 
-                
-                #x_plus_one = np.add(x, s_k)
-
+                #Increase Function Evaluation for calculating function value at x_k+1
                 func_eva+=1
+                #Break the loop if the value of f_x_k+1 decreased
                 if self.equation(x_plus_one)<=f_x:
                     break
-
+                
+                #Increase lambda if value of f_x_k+1 increased
                 ld = 2*ld
 
+            #Decrease the value of lambda if value of function at x_k+1 decreased
             ld = ld/2
+
+            #Assign x_k+1 to x_k 
             x = x_plus_one
+
+            #Increase the iteration counter
             k=k+1
             
         
@@ -335,6 +371,7 @@ class Marquardt_method(Multi_optimization):
 
         row_excel += 3
 
+        #Store final answer in excel sheet
         sheet1.write(row_excel, 0, "iterations")
         sheet1.write(row_excel, 1, k)
         row_excel+=1
@@ -352,18 +389,18 @@ class Marquardt_method(Multi_optimization):
 
 
 
-
+    #Function to get x, iteration counter and function evaluation for Marquardt Method
     def results(self):
         return self.x, self.k, self.func_eva
 
 
 
 def main():
+    #Get Filename from user
     filename = input("Enter name of input file : ")
+
+    #Read Particular CSV file as dataframe
     df = pd.read_csv(f'./{filename}')
-    xs = []
-    itrs = []
-    func_evas = []
     
     for i, row in df.iterrows():
         print(f"Input received from row {i}: {row}")
@@ -380,14 +417,12 @@ def main():
         for k in list(x_string.split(",")):
             x_array.append(float(k))
 
+        #Instantiate Object for Marquardt Method class
         marquardt = Marquardt_method(part, n, m, user_input, x_array)
         marquardt.minimize()
 
         print(f"--------------------------------------------------------------")
         x_result, itr, func_eva = marquardt.results()
-        xs.append(x_result)
-        itrs.append(itr)
-        func_evas.append(func_eva)
         print(x_result)
         print(f"Results from marquardt method for part {int(part)}", x_result)
         print(f"Iterations for part {part} : {itr}")
@@ -398,7 +433,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-    #rough()
 
 
 
