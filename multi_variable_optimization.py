@@ -15,8 +15,8 @@ class Multi_optimization():
         a,b = self.getrange()
 
         if user_input=="N":
-            self.x = np.random.uniform(low=a, high=b, size=(n))
-            #self.x = np.random.rand(n)
+            #self.x = np.random.uniform(low=a, high=b, size=(n))
+            self.x = np.random.rand(n)
         else :
             self.x = np.array(x)
 
@@ -188,8 +188,8 @@ class Multi_optimization():
 
     def function_plot(self):
         a, b = self.getrange()
-        x = np.linspace(a,b,250)
-        y = np.linspace(a,b,250)
+        x = np.linspace(-2,2,250)
+        y = np.linspace(-2,2,250)
 
         X, Y = np.meshgrid(x, y)
 
