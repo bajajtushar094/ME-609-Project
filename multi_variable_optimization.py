@@ -18,7 +18,7 @@ class Multi_optimization():
             #self.x = np.random.uniform(low=a, high=b, size=(n))
             self.x = np.random.rand(n)
         else :
-            self.x = np.array(x)
+            self.x = np.array(x[0:n])
 
         print("Initial value for x : ", self.x)
         self.m = m

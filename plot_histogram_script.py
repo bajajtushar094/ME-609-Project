@@ -19,22 +19,29 @@ def histogram(x_axis, y_axis, part, ylabel):
 
 def create_histogram_plots():
 
-    for i in range(1, 6):
-        itrs=[]
-        func_evas = []
-        for j in range(1, 11):
-            print(f"--------------------------------------------------------------")
-            marquardt = Marquardt_method(i, j, 100,"N", [5, 5, 5])
-            marquardt.minimize()
-            print(f"--------------------------------------------------------------")
-            x, itr, func_eva = marquardt.results()
-            itrs.append(itr)
-            func_evas.append(func_eva)
-            print(f"Results from marquardt method for part {i} and dimension {j} : {x}")
-            print(f"Iterations for part {i} and dimension {j} : {type(itr)}")
-            print(f"function evaluation for part {i} and dimension {j} : {func_eva}")
+    for z in range (0, 5):
+        itrs_sum = [0,0,0,0,0,0,0,0,0,0]
+        for i in range(1, 6):
+            itrs=[]
+            func_evas = []
+            for j in range(1, 11):
+                print(f"--------------------------------------------------------------")
+                marquardt = Marquardt_method(i, j, 100,"Y", [2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0])
+                marquardt.minimize()
+                print(f"--------------------------------------------------------------")
+                x, itr, func_eva = marquardt.results()
+                itrs.append(itr)
+                func_evas.append(func_eva)
+                print(f"Results from marquardt method for part {i} and dimension {j} : {x}")
+                print(f"Iterations for part {i} and dimension {j} : {type(itr)}")
+                print(f"function evaluation for part {i} and dimension {j} : {func_eva}")
 
-        print(f"Iterations recovered {itrs}: ")
+            print(f"Iterations recovered {itrs}: ")
+
+            itrs_sum += itrs 
+
+        itrs_avg = [x/5.0 for x in itrs_sum]
+
         histogram([1,2,3,4,5,6,7,8,9,10], itrs, i, "iterations")
         histogram([1,2,3,4,5,6,7,8,9,10], func_evas, i, "function evaluations")
 
