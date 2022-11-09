@@ -11,20 +11,27 @@ from xlwt import Workbook
 class Multi_optimization():
 
     #Constructor for Base Class
-    def __init__(self, part, n, m, user_input, x):
+    def __init__(self, part, n, m, user_input, x, r):
         self.n = n
         self.part = part
         self.wb = Workbook()
         a,b = self.getrange()
 
         if user_input=="N":
-            self.x = np.random.uniform(low=a, high=b, size=(n))
-            #self.x = np.random.randn(n)
+            # self.x = np.random.uniform(low=a, high=b, size=(n))
+            self.x = np.array(x)
         else :
-            self.x = np.array(x[0:n])
+            self.x = np.array(x)
 
         print("Initial value for x : ", self.x)
         self.m = m
+        self.r = r
+
+    def bracket_operator(self, x):
+            if x<0:
+                return x
+            else:
+                return 0
 
 
     #Get Function Name corresponding to part entered
@@ -44,36 +51,64 @@ class Multi_optimization():
             return "Himmelblau"    
 
     #Get Function value at vector x
-    def equation(self, x):
-        eqn = 0
-        if self.part == 1:
-            for i in range(0, len(x)):
-                eqn = eqn + (i+1)*x[i]*x[i]
-        elif self.part == 2:
-            for i in range(0, len(x)-1):
-                # a = (x[i+1]-x[i]*x[i])
-                # b = (x[i]-1)
-                eqn = eqn + ((100*(x[i+1]-x[i]*x[i])**2)+((x[i]-1)**2))
-        elif self.part == 3:
-            eqn = (x[0]-1)*(x[0]-1)
-            for i in range(1, len(x)):
-                eqn = eqn + (i+1)*((2*x[i]*x[i]-x[i-1])**2)
-        elif self.part == 4:
-            eqn = (x[0]-1)*(x[0]-1)
-            for i in range(1, len(x)):
-                eqn = eqn + (x[i]-1)**2 - x[i]*x[i-1]
-        elif self.part == 5:
-            inter_val = 0
-            for i in range(0, len(x)):
-                inter_val = inter_val + (1/2)*(i+1)*x[i]
+    # def equation(self, x):
+    #     eqn = 0
+    #     if self.part == 1:
+    #         for i in range(0, len(x)):
+    #             eqn = eqn + (i+1)*x[i]*x[i]
+    #     elif self.part == 2:
+    #         for i in range(0, len(x)-1):
+    #             # a = (x[i+1]-x[i]*x[i])
+    #             # b = (x[i]-1)
+    #             eqn = eqn + ((100*(x[i+1]-x[i]*x[i])**2)+((x[i]-1)**2))
+    #     elif self.part == 3:
+    #         eqn = (x[0]-1)*(x[0]-1)
+    #         for i in range(1, len(x)):
+    #             eqn = eqn + (i+1)*((2*x[i]*x[i]-x[i-1])**2)
+    #     elif self.part == 4:
+    #         eqn = (x[0]-1)*(x[0]-1)
+    #         for i in range(1, len(x)):
+    #             eqn = eqn + (x[i]-1)**2 - x[i]*x[i-1]
+    #     elif self.part == 5:
+    #         inter_val = 0
+    #         for i in range(0, len(x)):
+    #             inter_val = inter_val + (1/2)*(i+1)*x[i]
 
-                eqn = eqn + x[i]*x[i]
+    #             eqn = eqn + x[i]*x[i]
             
-            eqn = eqn + inter_val**2 + inter_val**4
-        elif self.part == 6:
-            eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
+    #         eqn = eqn + inter_val**2 + inter_val**4
+    #     elif self.part == 6:
+    #         eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
 
-        return eqn
+    #     return eqn
+
+    # def equation(self, x):
+    #     part = self.part
+    #     r = self.r
+
+    #     eqn = 0
+    #     if part==1:
+    #         eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2) + (r*x[0]) + (r*x[1]))
+    #     elif part==2:
+    #         eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator((x[0]-5)**2 + (x[1]-5)**2 -100)) + r*(self.bracket_operator(-1*((x[0] - 6)**2 + (x[1] - 5)**2 - 82.81)))
+
+    #     # print(f"eqn : {eqn}")
+    #     return eqn
+
+    def equation(self, x):
+        part = self.part
+        r = self.r
+        nc = 1 ## number of constraints. 
+        g = np.zeros(nc) 
+
+        sum_ = pow((pow(x[0],2) + x[1] - 11),2) + pow((pow(x[1],2) + x[0] - 7),2)
+        g[0] = -26.0 + pow((x[0]-5.0), 2) + pow(x[1],2);#constraints.
+
+        for i in range(nc):
+            if(g[i] < 0.0): ## meaning that the constraint is violatd.
+                sum_ = sum_ + r*g[i]*g[i]
+
+        return sum_
 
     #function for calculating gradient
     def gradient(self, x):
@@ -88,8 +123,13 @@ class Multi_optimization():
             x_plus[i] = x_plus[i]+epsilon
             x_minus[i] = x_minus[i]-epsilon
 
+            y = x_plus[i]+epsilon
+
+            print(f"x_plus : {x_plus[i]} and x_minus : {x_minus[i]}")
+
             grads = np.append(grads, ((self.equation(x_plus)-self.equation(x_minus))/(2*epsilon)))
 
+        # return  nd.Gradient(self.equation)(x)
         return grads
 
     #function for calculating Hessian matrix
@@ -128,6 +168,12 @@ class Multi_optimization():
 
                     hess[j][i] = hess[i][j]
 
+        Hessian_func = nd.Hessian(self.equation)
+
+        hessian = Hessian_func(x)
+
+        # return hessian
+
         return hess
 
     #function to check restart condition
@@ -146,8 +192,8 @@ class Multi_optimization():
         n = self.n
 
         if part == 1:
-            a = -5.12
-            b = 5.12
+            a = -100.0
+            b = 100.0
         elif part == 2:
             a = -2.048
             b = 2.048
@@ -239,10 +285,10 @@ class Multi_optimization():
 class Marquardt_method(Multi_optimization):
 
     #Constructor for Marquardt Method
-    def __init__(self, part, n, m, user_input, x):
+    def __init__(self, part, n, m, user_input, x, r):
         self.ld = 100
-        self.epsilon = 10**-6
-        super().__init__(part, n, m, user_input, x)
+        self.epsilon = 10**-3
+        super().__init__(part, n, m, user_input, x, r)
         
     #Marquart Method
     def minimize(self):
@@ -284,6 +330,8 @@ class Marquardt_method(Multi_optimization):
 
             #Calculate norm of Gradient at x    
             f_norm = np.linalg.norm(f_grad)
+
+            print(f"F_Norm : {f_norm}")
 
             #Break the outer loop if Norm of Gradient at x is less than epsilon or Iteration have increased beyond M
             if f_norm<=self.epsilon or k>=self.m:
@@ -418,7 +466,7 @@ def main():
             x_array.append(float(k))
 
         #Instantiate Object for Marquardt Method class
-        marquardt = Marquardt_method(part, n, m, user_input, x_array)
+        marquardt = Marquardt_method(part, n, m, user_input, x_array, 1)
         marquardt.minimize()
 
         print(f"--------------------------------------------------------------")

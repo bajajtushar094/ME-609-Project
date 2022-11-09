@@ -10,7 +10,7 @@ gmt = time.gmtime()
 ts = calendar.timegm(gmt)
 
 def truncate_decimals(x):
-    return round(x, 4)
+    return x
 
 class Basic_optimization():
     def __init__(self, part, x, x_k, s_k):
@@ -168,7 +168,7 @@ class Bounding_phase_method(Basic_optimization):
         f_x_k = super().equation(x[k])
 
         
-        while(f_x_k_plus_one<=f_x_k): 
+        while(f_x_k_plus_one<f_x_k): 
             
             out.write(f"{k}\t\t{truncate_decimals(x[k])}\t\t{truncate_decimals(f_x_k)}\n")
             #print(f"X value for {k}th iteration and x : {x[k]}")
