@@ -80,7 +80,7 @@ class Penalty_function_method(Constraint_optimization):
             r_array.append(c*r_array[-1])
             x = x_plus_one
             k+=1
-            break
+            # break
 
         self.x = x_plus_one
     

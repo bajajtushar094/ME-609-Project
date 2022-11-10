@@ -82,33 +82,18 @@ class Multi_optimization():
 
     #     return eqn
 
-    # def equation(self, x):
-    #     part = self.part
-    #     r = self.r
-
-    #     eqn = 0
-    #     if part==1:
-    #         eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2) + (r*x[0]) + (r*x[1]))
-    #     elif part==2:
-    #         eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator((x[0]-5)**2 + (x[1]-5)**2 -100)) + r*(self.bracket_operator(-1*((x[0] - 6)**2 + (x[1] - 5)**2 - 82.81)))
-
-    #     # print(f"eqn : {eqn}")
-    #     return eqn
-
     def equation(self, x):
         part = self.part
         r = self.r
-        nc = 1 ## number of constraints. 
-        g = np.zeros(nc) 
 
-        sum_ = pow((pow(x[0],2) + x[1] - 11),2) + pow((pow(x[1],2) + x[0] - 7),2)
-        g[0] = -26.0 + pow((x[0]-5.0), 2) + pow(x[1],2);#constraints.
+        eqn = 0
+        if part==1:
+            eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2) + (r*x[0]) + (r*x[1]))
+        elif part==2:
+            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator((x[0]-5)**2 + (x[1]-5)**2 -100)) + r*(self.bracket_operator(-1*((x[0] - 6)**2 + (x[1] - 5)**2 - 82.81)))
 
-        for i in range(nc):
-            if(g[i] < 0.0): ## meaning that the constraint is violatd.
-                sum_ = sum_ + r*g[i]*g[i]
-
-        return sum_
+        # print(f"eqn : {eqn}")
+        return eqn
 
     #function for calculating gradient
     def gradient(self, x):
@@ -129,8 +114,8 @@ class Multi_optimization():
 
             grads = np.append(grads, ((self.equation(x_plus)-self.equation(x_minus))/(2*epsilon)))
 
-        # return  nd.Gradient(self.equation)(x)
-        return grads
+        return  nd.Gradient(self.equation)(x)
+        # return grads
 
     #function for calculating Hessian matrix
     def hessian(self, x):
@@ -172,9 +157,9 @@ class Multi_optimization():
 
         hessian = Hessian_func(x)
 
-        # return hessian
+        return hessian
 
-        return hess
+        # return hess
 
     #function to check restart condition
     def checkRestart(self, mat, f_grad, inverse):
@@ -299,6 +284,7 @@ class Marquardt_method(Multi_optimization):
         func_eva = 0
         x_array = []
         f_x_array = []
+        r = self.r
         
         #Store output in the excel file
         sheet1 = self.wb.add_sheet('Sheet 1')
@@ -364,17 +350,17 @@ class Marquardt_method(Multi_optimization):
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
                 #Optimize to get value of alpha
-                bounding_phase_method = Bounding_phase_method(self.part, x, s_k)
+                bounding_phase_method = Bounding_phase_method(self.part, x, s_k, self.r)
                 bounding_phase_method.minimize()
                 a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
 
                 #Add function evaluations from bounding phase method
                 func_eva+=func_eva_bounding_phase
-                print(f"--------------------------------------------------")
-                print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                # print(f"--------------------------------------------------")
+                # print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
                 #Call Interval Halving Method by giving the results of Bounding Phase Method
-                interval_halving_method = Interval_halving_method(self.part, x, s_k, a=a_bounding_phase, b=b_bounding_phase)
+                interval_halving_method = Interval_halving_method(self.part, x, s_k, a_bounding_phase, b_bounding_phase, r)
                 interval_halving_method.minimize()
                 a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
                 
@@ -384,8 +370,8 @@ class Marquardt_method(Multi_optimization):
                 #Use average value of Lower and Upper bounds from Interval Halving Method
                 alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
 
-                print(f"--------------------------------------------------")
-                print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                # print(f"--------------------------------------------------")
+                # print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
                 #Calculate value of X_k+1
                 x_plus_one = np.add(x, np.dot(alpha, s_k))

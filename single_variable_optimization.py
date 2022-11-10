@@ -13,44 +13,69 @@ def truncate_decimals(x):
     return x
 
 class Basic_optimization():
-    def __init__(self, part, x, x_k, s_k):
+    def __init__(self, part, x, x_k, s_k, r):
         self.part = part
         self.x_k = x_k
         self.s_k = s_k
         self.x = x
+        self.r = r
+
+    # def equation(self, x):
+    #     if len(self.x_k)!=0 and len(self.s_k)!=0 : 
+    #         x = np.add(self.x_k, np.dot(x, self.s_k))
+    #     else:
+    #         x = np.array([x])
+
+    #     eqn = 0
+    #     if self.part == 1:
+    #         for i in range(0, len(x)):
+    #             eqn = eqn + (i+1)*x[i]*x[i]
+    #     elif self.part == 2:
+    #         for i in range(0, len(x)-1):
+    #             eqn = eqn + ((100*(x[i+1]-x[i]*x[i])**2)+((x[i]-1)**2))
+    #     elif self.part == 3:
+    #         eqn = (x[0]-1)*(x[0]-1)
+    #         for i in range(1, len(x)):
+    #             eqn = eqn + (i+1)*((2*x[i]*x[i]-x[i-1])**2)
+    #     elif self.part == 4:
+    #         eqn = (x[0]-1)*(x[0]-1)
+    #         for i in range(1, len(x)):
+    #             eqn = eqn + (x[i]-1)**2 - x[i]*x[i-1]
+    #     elif self.part == 5:
+    #         inter_val = 0
+    #         for i in range(0, len(x)):
+    #             inter_val = inter_val + (1/2)*(i+1)*x[i]
+
+    #             eqn = eqn + x[i]*x[i]
+            
+    #         eqn = eqn + inter_val**2 + inter_val**4   
+    #     elif self.part == 6:
+    #         eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
+
+    #     return eqn
+
+    def bracket_operator(self, x):
+            if x<0:
+                return x
+            else:
+                return 0
 
     def equation(self, x):
         if len(self.x_k)!=0 and len(self.s_k)!=0 : 
             x = np.add(self.x_k, np.dot(x, self.s_k))
         else:
             x = np.array([x])
+            
+        part = self.part
+        r = self.r
 
         eqn = 0
-        if self.part == 1:
-            for i in range(0, len(x)):
-                eqn = eqn + (i+1)*x[i]*x[i]
-        elif self.part == 2:
-            for i in range(0, len(x)-1):
-                eqn = eqn + ((100*(x[i+1]-x[i]*x[i])**2)+((x[i]-1)**2))
-        elif self.part == 3:
-            eqn = (x[0]-1)*(x[0]-1)
-            for i in range(1, len(x)):
-                eqn = eqn + (i+1)*((2*x[i]*x[i]-x[i-1])**2)
-        elif self.part == 4:
-            eqn = (x[0]-1)*(x[0]-1)
-            for i in range(1, len(x)):
-                eqn = eqn + (x[i]-1)**2 - x[i]*x[i-1]
-        elif self.part == 5:
-            inter_val = 0
-            for i in range(0, len(x)):
-                inter_val = inter_val + (1/2)*(i+1)*x[i]
+        if part==1:
+            eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2) + (r*x[0]) + (r*x[1]))
+        elif part==2:
+            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator((x[0]-5)**2 + (x[1]-5)**2 -100)) + r*(self.bracket_operator(-1*((x[0] - 6)**2 + (x[1] - 5)**2 - 82.81)))
 
-                eqn = eqn + x[i]*x[i]
-            
-            eqn = eqn + inter_val**2 + inter_val**4   
-        elif self.part == 6:
-            eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
-
+        # print(f"eqn : {eqn}")
         return eqn
 
 
@@ -122,10 +147,10 @@ class Basic_optimization():
 
 
 class Bounding_phase_method(Basic_optimization):
-    def __init__(self, part, x_k, s_k):
+    def __init__(self, part, x_k, s_k, r):
         x = np.array([random.random()])
         self.delta = 10**-3
-        super().__init__(part, x, x_k, s_k)
+        super().__init__(part, x, x_k, s_k, r)
 
     def minimize(self):
         out = open(f"./outputs/bounding_phase_method_part{self.part}.out", "w")
@@ -204,13 +229,13 @@ class Bounding_phase_method(Basic_optimization):
 
 
 class Interval_halving_method(Basic_optimization):
-    def __init__(self, part, x_k, s_k, a, b):
+    def __init__(self, part, x_k, s_k, a, b, r):
         self.epsilon = 10**-3
         self.l = b-a
         self.a = a
         self.b = b
         x = np.array([])
-        super().__init__(part, x, x_k, s_k)
+        super().__init__(part, x, x_k, s_k, r)
 
     def minimize(self):
         out = open(f"./outputs/interval_halving_method_part{self.part}.out", "w")
