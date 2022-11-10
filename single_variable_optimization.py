@@ -216,7 +216,7 @@ class Bounding_phase_method(Basic_optimization):
         self.new_a = self.x[self.k-1]
         self.new_b = self.x[self.k+1]
         self.func_eva = function_eval
-        print(f"Total function evaluation for bounding phase method : {function_eval}")
+        # print(f"Total function evaluation for bounding phase method : {function_eval}")
 
         out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after bounding phase method for {k} iterations")
 
@@ -292,7 +292,7 @@ class Interval_halving_method(Basic_optimization):
         self.x = x
         self.func_eva = function_eval
 
-        print(f"Total function evaluation for interval halving method: {function_eval}")
+        # print(f"Total function evaluation for interval halving method: {function_eval}")
 
         out.write(f"Value for new a : {self.new_a} and new b : {self.new_b} after interval halving method")
 

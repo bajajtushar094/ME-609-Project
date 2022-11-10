@@ -5,6 +5,7 @@ class Constraint_optimization():
         self.part = part
         self.n = n
         self.user_input = user_input
+
         self.x = np.array(x)
         self.c = 10
         self.r = 0.1
@@ -19,25 +20,13 @@ class Constraint_optimization():
     def equation(self, x, r):
         part = self.part
 
-        # eqn = 0
-        # if part==1:
-        #     eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2))
-        # elif part==2:
-        #     eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator((x[0]-5)**2 + (x[1]-5)**2 -100)) + r*(self.bracket_operator(-1*((x[0] - 6)**2 + (x[1] - 5)**2 - 82.81)))
+        eqn = 0
+        if part==1:
+            eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2))
+        elif part==2:
+            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100 -1.0)) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0)))
 
-        # return eqn
-
-        nc = 1 ## number of constraints. 
-        g = np.zeros(nc) 
-
-        sum_ = pow((pow(x[0],2) + x[1] - 11),2) + pow((pow(x[1],2) + x[0] - 7),2)
-        g[0] = -26.0 + pow((x[0]-5.0), 2) + pow(x[1],2);#constraints.
-
-        for i in range(nc):
-            if(g[i] < 0.0): ## meaning that the constraint is violatd.
-                sum_ = sum_ + r*g[i]*g[i]
-
-        return sum_
+        return eqn
 
 
 class Penalty_function_method(Constraint_optimization):
@@ -55,26 +44,36 @@ class Penalty_function_method(Constraint_optimization):
 
         k=1
 
-        marquardt_method = Marquardt_method(part, n, 100, 'N', x, r)
+        marquardt_method = Marquardt_method(part, n, 1000, 'N', x, r)
         marquardt_method.minimize()
 
         x_plus_one, itrs, func_eval = marquardt_method.results()
         x = x_plus_one
         print(f"x_1 : {x_plus_one}")
+        print(f"r : {c*r}")
         r_array.append(c*r)
 
         while True:
-            marquardt_method = Marquardt_method(part, n, 100, 'N', x, r_array[-1])
+            
+            marquardt_method = Marquardt_method(part, n, 1000, 'N', x, r_array[-1])
             marquardt_method.minimize()
 
             x_plus_one, itrs, func_eval = marquardt_method.results()
 
-            p = self.equation(x, r_array[-2])
-            print(f"Penalty function value at x_0 : {p}")
-            p_plus_one = self.equation(x_plus_one, r_array[-1])
-            print(f"Penalty function value at x_1 : {p_plus_one}")
+            p = self.equation(x, r_array[-1])
+            p_plus_one = self.equation(x_plus_one, r_array[-2])
 
-            if abs(p_plus_one-p)<(10**-3):
+            print(f"\n\n\n----------------------------\n\n\n")
+
+            print(f"x_0 after {k} : {x}")
+            print(f"x_1 after {k} : {x_plus_one}")
+            print(f"p_0 after {k} : {p}")
+            print(f"p_1 after {k} : {p_plus_one}")
+            print(f"Constraint Violation : {abs(p_plus_one-p)}")
+            print(f"\n\n\n----------------------------\n\n\n")
+
+            
+            if abs(p_plus_one-p)<0.001:
                 break
 
             r_array.append(c*r_array[-1])
@@ -90,7 +89,7 @@ class Penalty_function_method(Constraint_optimization):
 
 
 def main():
-    penalty_function_method = Penalty_function_method(1, 2, 'N', [0,0])
+    penalty_function_method = Penalty_function_method(2, 2, 'N', [15,0])
 
     penalty_function_method.minimize()
     x = penalty_function_method.results()

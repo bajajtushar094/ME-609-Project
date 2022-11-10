@@ -88,70 +88,70 @@ class Multi_optimization():
 
         eqn = 0
         if part==1:
-            eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2) + (r*x[0]) + (r*x[1]))
+            eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2))
         elif part==2:
-            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator((x[0]-5)**2 + (x[1]-5)**2 -100)) + r*(self.bracket_operator(-1*((x[0] - 6)**2 + (x[1] - 5)**2 - 82.81)))
+            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100 -1.0)) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0)))
 
         # print(f"eqn : {eqn}")
         return eqn
 
     #function for calculating gradient
     def gradient(self, x):
-        epsilon = 2.34E-10
+        # epsilon = 2.34E-10
 
-        grads = np.array([])
-        f_x = self.equation(x)
+        # grads = np.array([])
+        # f_x = self.equation(x)
 
-        for i in range(self.n):
-            x_plus = x.copy()
-            x_minus = x.copy()
-            x_plus[i] = x_plus[i]+epsilon
-            x_minus[i] = x_minus[i]-epsilon
+        # for i in range(self.n):
+        #     x_plus = x.copy()
+        #     x_minus = x.copy()
+        #     x_plus[i] = x_plus[i]+epsilon
+        #     x_minus[i] = x_minus[i]-epsilon
 
-            y = x_plus[i]+epsilon
+        #     y = x_plus[i]+epsilon
 
-            print(f"x_plus : {x_plus[i]} and x_minus : {x_minus[i]}")
+        #     print(f"x_plus : {x_plus[i]} and x_minus : {x_minus[i]}")
 
-            grads = np.append(grads, ((self.equation(x_plus)-self.equation(x_minus))/(2*epsilon)))
+        #     grads = np.append(grads, ((self.equation(x_plus)-self.equation(x_minus))/(2*epsilon)))
 
         return  nd.Gradient(self.equation)(x)
         # return grads
 
     #function for calculating Hessian matrix
     def hessian(self, x):
-        hess = np.eye(self.n, self.n)
+        # hess = np.eye(self.n, self.n)
 
-        f_x = self.equation(x)
-        epsilon = 10**-6
+        # f_x = self.equation(x)
+        # epsilon = 10**-6
 
-        for i in range(self.n):
-            for j in range(i+1):
-                x_plus = x.copy()
-                x_minus = x.copy()
-                if i==j:
-                    x_plus[i] = x_plus[i]+epsilon
-                    x_minus[i] = x_minus[i]-epsilon
-                    hess[i][i] = (self.equation(x_plus)+self.equation(x_minus)-2*f_x)/(epsilon**2)
-                else:
-                    x_plus_i_plus_j = x.copy()
-                    x_plus_i_plus_j[i] = x_plus_i_plus_j[i]+epsilon
-                    x_plus_i_plus_j[j] = x_plus_i_plus_j[j]+epsilon
+        # for i in range(self.n):
+        #     for j in range(i+1):
+        #         x_plus = x.copy()
+        #         x_minus = x.copy()
+        #         if i==j:
+        #             x_plus[i] = x_plus[i]+epsilon
+        #             x_minus[i] = x_minus[i]-epsilon
+        #             hess[i][i] = (self.equation(x_plus)+self.equation(x_minus)-2*f_x)/(epsilon**2)
+        #         else:
+        #             x_plus_i_plus_j = x.copy()
+        #             x_plus_i_plus_j[i] = x_plus_i_plus_j[i]+epsilon
+        #             x_plus_i_plus_j[j] = x_plus_i_plus_j[j]+epsilon
 
-                    x_plus_i_minus_j = x.copy()
-                    x_plus_i_minus_j[i] = x_plus_i_minus_j[i]+epsilon
-                    x_plus_i_minus_j[j] = x_plus_i_minus_j[j]-epsilon
+        #             x_plus_i_minus_j = x.copy()
+        #             x_plus_i_minus_j[i] = x_plus_i_minus_j[i]+epsilon
+        #             x_plus_i_minus_j[j] = x_plus_i_minus_j[j]-epsilon
 
-                    x_minus_i_plus_j = x.copy()
-                    x_minus_i_plus_j[i] = x_minus_i_plus_j[i]-epsilon
-                    x_minus_i_plus_j[j] = x_minus_i_plus_j[j]+epsilon
+        #             x_minus_i_plus_j = x.copy()
+        #             x_minus_i_plus_j[i] = x_minus_i_plus_j[i]-epsilon
+        #             x_minus_i_plus_j[j] = x_minus_i_plus_j[j]+epsilon
 
-                    x_minus_i_minus_j = x.copy()
-                    x_minus_i_minus_j[i] = x_minus_i_minus_j[i]-epsilon
-                    x_minus_i_minus_j[j] = x_minus_i_minus_j[j]-epsilon
+        #             x_minus_i_minus_j = x.copy()
+        #             x_minus_i_minus_j[i] = x_minus_i_minus_j[i]-epsilon
+        #             x_minus_i_minus_j[j] = x_minus_i_minus_j[j]-epsilon
 
-                    hess[i][j] = (self.equation(x_plus_i_plus_j)+self.equation(x_minus_i_minus_j)-self.equation(x_plus_i_minus_j)-self.equation(x_minus_i_plus_j))/(4*epsilon*epsilon)
+        #             hess[i][j] = (self.equation(x_plus_i_plus_j)+self.equation(x_minus_i_minus_j)-self.equation(x_plus_i_minus_j)-self.equation(x_minus_i_plus_j))/(4*epsilon*epsilon)
 
-                    hess[j][i] = hess[i][j]
+        #             hess[j][i] = hess[i][j]
 
         Hessian_func = nd.Hessian(self.equation)
 
@@ -317,7 +317,7 @@ class Marquardt_method(Multi_optimization):
             #Calculate norm of Gradient at x    
             f_norm = np.linalg.norm(f_grad)
 
-            print(f"F_Norm : {f_norm}")
+            # print(f"F_Norm : {f_norm}")
 
             #Break the outer loop if Norm of Gradient at x is less than epsilon or Iteration have increased beyond M
             if f_norm<=self.epsilon or k>=self.m:
@@ -349,32 +349,34 @@ class Marquardt_method(Multi_optimization):
                 #Calculate Direction of descent at x
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
-                #Optimize to get value of alpha
-                bounding_phase_method = Bounding_phase_method(self.part, x, s_k, self.r)
-                bounding_phase_method.minimize()
-                a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
+                # #Optimize to get value of alpha
+                # bounding_phase_method = Bounding_phase_method(self.part, x, s_k, self.r)
+                # bounding_phase_method.minimize()
+                # a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
 
-                #Add function evaluations from bounding phase method
-                func_eva+=func_eva_bounding_phase
-                # print(f"--------------------------------------------------")
-                # print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                # #Add function evaluations from bounding phase method
+                # func_eva+=func_eva_bounding_phase
+                # # print(f"--------------------------------------------------")
+                # # print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                #Call Interval Halving Method by giving the results of Bounding Phase Method
-                interval_halving_method = Interval_halving_method(self.part, x, s_k, a_bounding_phase, b_bounding_phase, r)
-                interval_halving_method.minimize()
-                a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
+                # #Call Interval Halving Method by giving the results of Bounding Phase Method
+                # interval_halving_method = Interval_halving_method(self.part, x, s_k, a_bounding_phase, b_bounding_phase, r)
+                # interval_halving_method.minimize()
+                # a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
                 
-                #Add function evaluations from Interval Halving Method
-                func_eva+= func_eva_interval_halving
+                # #Add function evaluations from Interval Halving Method
+                # func_eva+= func_eva_interval_halving
                 
-                #Use average value of Lower and Upper bounds from Interval Halving Method
-                alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
+                # #Use average value of Lower and Upper bounds from Interval Halving Method
+                # alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
 
-                # print(f"--------------------------------------------------")
-                # print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                # # print(f"--------------------------------------------------")
+                # # print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                #Calculate value of X_k+1
-                x_plus_one = np.add(x, np.dot(alpha, s_k))
+                # #Calculate value of X_k+1
+                # x_plus_one = np.add(x, np.dot(alpha, s_k))
+
+                x_plus_one = np.add(x, s_k)
 
                 #Increase Function Evaluation for calculating function value at x_k+1
                 func_eva+=1
