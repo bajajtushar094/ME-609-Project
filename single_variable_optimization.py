@@ -70,10 +70,14 @@ class Basic_optimization():
         r = self.r
 
         eqn = 0
-        if part==1:
-            eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2) + (r*x[0]) + (r*x[1]))
-        elif part==2:
-            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100 -1.0)) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0))) + r*(self.bracket_operator(x[0]-13)) + r*(self.bracket_operator(20-x[0])) + r*(self.bracket_operator(x[1])) +r*(self.bracket_operator(4-x[1]))
+        if part==0:
+            eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2))
+        elif part==1:
+            eqn = ((x[0] - 10)**3+(x[1] - 20)**3)/7973 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100.0 - 1.0)**2) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0))**2)
+        elif part ==2:
+            eqn = -1*(((math.sin(2*math.pi*x[0])**3)*math.sin(2*math.pi*x[1]))/((x[0]**3)*(x[0]+x[1]))) + r*(self.bracket_operator(-1*((x[0]**2-x[1]+1)/101))**2) + r*(self.bracket_operator(-1*((1-x[0]+(x[1]-4)**2)/37))**2)
+        elif part==3:
+            eqn = (x[0]+x[1]+x[2])/30000 + r*(self.bracket_operator(-1*((-1+0.0025*(x[3]+x[5]))/4))**2) + r*(self.bracket_operator(-1*((-1+0.0025*(-x[3]+x[4]+x[6]))/3.975))**2) + r*(self.bracket_operator(-1*((-1+0.01*(-x[5]+x[7]))/8.9))**2) + r*(self.bracket_operator(-1*((100*x[0]-x[0]*x[5]+833.33252*x[3]-83333.333)/1650000))**2) + r*(self.bracket_operator(-1*((x[1]*x[3]-x[1]*x[6]-1250*x[3]+1250*x[4])/9900000))**2) + r*(self.bracket_operator(-1*((x[2]*x[4]-x[2]*x[7]-2500*x[4]+1250000)/8650000))**2)
 
         # print(f"eqn : {eqn}")
         return eqn
