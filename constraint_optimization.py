@@ -1,4 +1,5 @@
 from multi_variable_optimization import *
+import math
 
 class Constraint_optimization():
     def __init__(self, part, n, user_input, x):
@@ -7,8 +8,8 @@ class Constraint_optimization():
         self.user_input = user_input
 
         self.x = np.array(x)
-        self.c = 10
-        self.r = 0.1
+        self.c = 2
+        self.r = 0.05
 
     def bracket_operator(self, x):
         if x<0:
@@ -24,7 +25,9 @@ class Constraint_optimization():
         if part==1:
             eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2))
         elif part==2:
-            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100 -1.0)) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0)))
+            eqn = ((x[0] - 10)**3+(x[1] - 20)**3)/7973 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100.0 - 1.0)**2) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0))**2)
+        elif part ==3:
+            eqn = -1*(((math.sin(2*math.pi*x[0])**3)*math.sin(2*math.pi*x[1]))/((x[0]**3)*(x[0]+x[1]))) + r*(self.bracket_operator(-1*(x[0]**2-x[1]+1))**2) + r*(self.bracket_operator(-1*(1-x[0]+(x[1]-4)**2))**2)
 
         return eqn
 
@@ -73,7 +76,7 @@ class Penalty_function_method(Constraint_optimization):
             print(f"\n\n\n----------------------------\n\n\n")
 
             
-            if abs(p_plus_one-p)<0.001:
+            if abs(p_plus_one-p)<10**-3:
                 break
 
             r_array.append(c*r_array[-1])
@@ -89,7 +92,7 @@ class Penalty_function_method(Constraint_optimization):
 
 
 def main():
-    penalty_function_method = Penalty_function_method(2, 2, 'N', [15,0])
+    penalty_function_method = Penalty_function_method(2, 2, 'N', [16,2])
 
     penalty_function_method.minimize()
     x = penalty_function_method.results()

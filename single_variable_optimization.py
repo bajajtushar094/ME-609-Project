@@ -73,7 +73,7 @@ class Basic_optimization():
         if part==1:
             eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2) + (r*x[0]) + (r*x[1]))
         elif part==2:
-            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator((x[0]-5)**2 + (x[1]-5)**2 -100)) + r*(self.bracket_operator(-1*((x[0] - 6)**2 + (x[1] - 5)**2 - 82.81)))
+            eqn = (x[0] - 10)**3+(x[1] - 20)**3 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100 -1.0)) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0))) + r*(self.bracket_operator(x[0]-13)) + r*(self.bracket_operator(20-x[0])) + r*(self.bracket_operator(x[1])) +r*(self.bracket_operator(4-x[1]))
 
         # print(f"eqn : {eqn}")
         return eqn
