@@ -3,12 +3,12 @@ from constraint_optimization import *
 
 def create_iteration_plots():
 
-    # x_values = [[1.1,1.6],[6.1,1.5],[6.1,0.1],[5.1,3.1],[0.5,0.5],[1.0,7.5],[2.1,2.9],[1.5,2.06],[1.05,8.95],[1.0001,1.9999]]
-    x_values = [[20,33],[65,2],[99,55],[22.0,22.2],[52.03,1.66],[14.055,13.0],[14,0.3],[33.89,56.98],[100,0],[66,32]]
-    out = open(f"./phase_3_outputs/question_1.out", "w")
+    x_values = [[6,6],[6.1,6.1],[5.8,5.8],[6.4,6.4],[5.6,5.6],[6,6],[5.6,5.8],[6,6],[5.9,5.8],[6.05,6.05]]
+    #x_values = [[20,33],[65,2],[99,55],[22.0,22.2],[52.03,1.66],[14.055,13.0],[14,0.3],[33.89,56.98],[100,0],[66,32]]
+    out = open(f"./phase_3_outputs/question_2.out", "w")
     out.write(f'i\t\t\t\tf_x\t\t\t\tx\n')
     for i in range(10):
-        penalty_function_method = Penalty_function_method(2, 2, i, 'N', x_values[i])
+        penalty_function_method = Penalty_function_method(3, 2, i, 'N', x_values[i])
 
         penalty_function_method.minimize()
         x_answer, f_x = penalty_function_method.results()

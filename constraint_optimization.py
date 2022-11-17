@@ -43,7 +43,7 @@ class Constraint_optimization():
         elif part==2:
             eqn = (x[0] - 10)**3+(x[1] - 20)**3
         elif part ==3:
-            eqn = -1*(((math.sin(2*math.pi*x[0])**3)*math.sin(2*math.pi*x[1]))/((x[0]**3)*(x[0]+x[1])))
+            eqn = (((math.sin(2*math.pi*x[0])**3)*math.sin(2*math.pi*x[1]))/((x[0]**3)*(x[0]+x[1])))
         elif part==4:
             eqn = x[0]+x[1]+x[2]
     
@@ -177,7 +177,7 @@ class Penalty_function_method(Constraint_optimization):
             print(f"\n\n\n----------------------------\n\n\n")
 
             
-            if abs(p_plus_one-p)<10**-3:
+            if abs(p_plus_one-p)<10**-6:
                 break
 
             r_array.append(c*r_array[-1])
@@ -215,7 +215,7 @@ def main():
             x_array.append(float(k))
 
 
-        penalty_function_method = Penalty_function_method(part, n, 1, user_input, [20,33])
+        penalty_function_method = Penalty_function_method(part, n, 1, user_input, x_array)
 
         penalty_function_method.minimize()
         x = penalty_function_method.results()
