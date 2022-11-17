@@ -268,26 +268,26 @@ class Marquardt_method(Multi_optimization):
                 #Calculate Direction of descent at x
                 s_k = np.dot(-1, np.matmul(inverse, f_grad))
 
-                #Optimize to get value of alpha
-                bounding_phase_method = Bounding_phase_method(self.part, x, s_k, self.r)
-                bounding_phase_method.minimize()
-                a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
+                # #Optimize to get value of alpha
+                # bounding_phase_method = Bounding_phase_method(self.part, x, s_k, self.r)
+                # bounding_phase_method.minimize()
+                # a_bounding_phase, b_bounding_phase, func_eva_bounding_phase = bounding_phase_method.results()
 
-                #Add function evaluations from bounding phase method
-                func_eva+=func_eva_bounding_phase
-                # print(f"--------------------------------------------------")
-                # print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
+                # #Add function evaluations from bounding phase method
+                # func_eva+=func_eva_bounding_phase
+                # # print(f"--------------------------------------------------")
+                # # print(f"Range from bounding phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
 
-                #Call Interval Halving Method by giving the results of Bounding Phase Method
-                interval_halving_method = Interval_halving_method(self.part, x, s_k, a_bounding_phase, b_bounding_phase, r)
-                interval_halving_method.minimize()
-                a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
+                # #Call Interval Halving Method by giving the results of Bounding Phase Method
+                # interval_halving_method = Interval_halving_method(self.part, x, s_k, a_bounding_phase, b_bounding_phase, r)
+                # interval_halving_method.minimize()
+                # a_interval_halving, b_interval_halving, func_eva_interval_halving = interval_halving_method.results()
                 
-                #Add function evaluations from Interval Halving Method
-                func_eva+= func_eva_interval_halving
+                # #Add function evaluations from Interval Halving Method
+                # func_eva+= func_eva_interval_halving
                 
-                #Use average value of Lower and Upper bounds from Interval Halving Method
-                alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
+                # #Use average value of Lower and Upper bounds from Interval Halving Method
+                # alpha = a_interval_halving + (b_interval_halving-a_interval_halving)/2
 
                 # print(f"--------------------------------------------------")
                 # print(f"Range from interval halving phase method => a : {a_bounding_phase}, b : {b_bounding_phase}")
