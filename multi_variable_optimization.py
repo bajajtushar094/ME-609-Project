@@ -31,20 +31,69 @@ class Multi_optimization():
             if x<0:
                 return x
             else:
-                return 0 
+                return 0
+
+
+    #Get Function Name corresponding to part entered
+    def get_function_name(self):
+
+        if self.part == 1:
+            return "Sum Squares" 
+        elif self.part == 2:
+            return "Rosenbrock" 
+        elif self.part == 3:
+            return "Dixon Price"
+        elif self.part == 4:
+            return "Trid"
+        elif self.part == 5:
+            return "Zakharox"
+        elif self.part == 6:
+            return "Himmelblau"    
+
+    #Get Function value at vector x
+    # def equation(self, x):
+    #     eqn = 0
+    #     if self.part == 1:
+    #         for i in range(0, len(x)):
+    #             eqn = eqn + (i+1)*x[i]*x[i]
+    #     elif self.part == 2:
+    #         for i in range(0, len(x)-1):
+    #             # a = (x[i+1]-x[i]*x[i])
+    #             # b = (x[i]-1)
+    #             eqn = eqn + ((100*(x[i+1]-x[i]*x[i])**2)+((x[i]-1)**2))
+    #     elif self.part == 3:
+    #         eqn = (x[0]-1)*(x[0]-1)
+    #         for i in range(1, len(x)):
+    #             eqn = eqn + (i+1)*((2*x[i]*x[i]-x[i-1])**2)
+    #     elif self.part == 4:
+    #         eqn = (x[0]-1)*(x[0]-1)
+    #         for i in range(1, len(x)):
+    #             eqn = eqn + (x[i]-1)**2 - x[i]*x[i-1]
+    #     elif self.part == 5:
+    #         inter_val = 0
+    #         for i in range(0, len(x)):
+    #             inter_val = inter_val + (1/2)*(i+1)*x[i]
+
+    #             eqn = eqn + x[i]*x[i]
+            
+    #         eqn = eqn + inter_val**2 + inter_val**4
+    #     elif self.part == 6:
+    #         eqn = (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 -7)**2
+
+    #     return eqn
 
     def equation(self, x):
         part = self.part
         r = self.r
 
         eqn = 0
-        if part==0:
+        if part==1:
             eqn = (((x[0]**2+x[1]-11)**2+(x[0]+x[1]**2-7)**2)+(r*(self.bracket_operator(((x[0]-5)**2)+(x[1]**2)-26))**2))
-        elif part==1:
+        elif part==2:
             eqn = ((x[0] - 10)**3+(x[1] - 20)**3)/7973 + r*(self.bracket_operator(((x[0]-5)**2 + (x[1]-5)**2)/100.0 - 1.0)**2) + r*(self.bracket_operator(-1*(((x[0] - 6)**2 + (x[1] - 5)**2)/82.81 - 1.0))**2)
-        elif part ==2:
-            eqn = -1*(((math.sin(2*math.pi*x[0])**3)*math.sin(2*math.pi*x[1]))/((x[0]**3)*(x[0]+x[1]))) + r*(self.bracket_operator(-1*((x[0]**2-x[1]+1)/101))**2) + r*(self.bracket_operator(-1*((1-x[0]+(x[1]-4)**2)/37))**2)
-        elif part==3:
+        elif part ==3:
+            eqn = -1*(((math.sin(2*math.pi*x[0])**3)*math.sin(2*math.pi*x[1]))/((x[0]**3)*(x[0]+x[1]))) + r*(self.bracket_operator(-1*(x[0]**2-x[1]+1)/101)**2) + r*(self.bracket_operator(-1*(1-x[0]+(x[1]-4)**2)/37)**2)
+        elif part==4:
             eqn = (x[0]+x[1]+x[2])/30000 + r*(self.bracket_operator(-1*((-1+0.0025*(x[3]+x[5]))/4))**2) + r*(self.bracket_operator(-1*((-1+0.0025*(-x[3]+x[4]+x[6]))/3.975))**2) + r*(self.bracket_operator(-1*((-1+0.01*(-x[5]+x[7]))/8.9))**2) + r*(self.bracket_operator(-1*((100*x[0]-x[0]*x[5]+833.33252*x[3]-83333.333)/1650000))**2) + r*(self.bracket_operator(-1*((x[1]*x[3]-x[1]*x[6]-1250*x[3]+1250*x[4])/9900000))**2) + r*(self.bracket_operator(-1*((x[2]*x[4]-x[2]*x[7]-2500*x[4]+1250000)/8650000))**2)
 
 
@@ -246,8 +295,8 @@ class Marquardt_method(Multi_optimization):
         sheet1 = self.wb.add_sheet('Sheet 1')
         
         #Entries for excel file
-        # sheet1.write(0, 0, f"Function Name")
-        # sheet1.write(0, 1, f"{self.get_function_name()} Function")
+        sheet1.write(0, 0, f"Function Name")
+        sheet1.write(0, 1, f"{self.get_function_name()} Function")
         sheet1.write(1, 0, "Dimension")
         sheet1.write(1, 1, self.n)
         sheet1.write(2, 0, "Lower Bound")
@@ -425,3 +474,13 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
