@@ -177,7 +177,7 @@ class Penalty_function_method(Constraint_optimization):
             print(f"\n\n\n----------------------------\n\n\n")
 
             
-            if abs(p_plus_one-p)<10**-6:
+            if abs(p_plus_one-p)<10**-3:
                 break
 
             r_array.append(c*r_array[-1])
