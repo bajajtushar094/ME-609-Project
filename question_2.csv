@@ -1,2 +1,2 @@
-part,n,user_input,x
-3,2,"N","1.05,8.95"
+part,n,user_input,x,r,c,delta
+3,2,"N","6,6",0.05,2,12

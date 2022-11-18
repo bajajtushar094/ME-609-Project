@@ -1,6 +1,0 @@
-Continue Solving part - 3 with Interval Halving Method 
- a : 0.6645884721964364 
- b : 2.2005884721964364 
-#It			a			b			x_m
-0			0.6645884721964364			1.4325884721964364			1.0485884721964362
-Value for new a : 0.6645884721964364 and new b : 1.4325884721964364 after interval halving method

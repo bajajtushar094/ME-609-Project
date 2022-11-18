@@ -1,2 +1,2 @@
-part,n,user_input,x
-1,2,"N","0,0"
+part,n,user_input,x,r,c,delta
+1,2,"N","0,0",0.1,10,3

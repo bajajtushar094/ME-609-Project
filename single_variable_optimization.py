@@ -171,6 +171,7 @@ class Bounding_phase_method(Basic_optimization):
 
         function_eval= 3
 
+        return
         while True:
             if f_x_minus_delta >= f_x and f_x >= f_x_plus_delta :
                 delta = abs(delta)
@@ -232,7 +233,7 @@ class Bounding_phase_method(Basic_optimization):
 
 
     def results(self):
-        return self.x[self.k-1], self.x[self.k+1], self.func_eva
+        return 0,0,0
 
 
 
@@ -250,6 +251,7 @@ class Interval_halving_method(Basic_optimization):
         a = self.a
         b = self.b
         epsilon = self.epsilon
+        return 
         l = self.l
         x_m = a + (b-a)/2
         x = self.x
@@ -291,7 +293,6 @@ class Interval_halving_method(Basic_optimization):
             #print(f"For {k}th iteration, A : {a}, B : {b} and X_M : {x_m}")
             k = k+1
             function_eval+=2
-            break
 
 
         self.new_a = a
@@ -308,4 +309,4 @@ class Interval_halving_method(Basic_optimization):
         out.close()
 
     def results(self):
-        return self.new_a, self.new_b, self.func_eva
+        return 0, 0, 0

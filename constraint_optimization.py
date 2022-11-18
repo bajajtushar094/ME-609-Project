@@ -1,16 +1,18 @@
+from calendar import c
 from multi_variable_optimization import *
 import math
 from matplotlib.ticker import FormatStrFormatter
 
 class Constraint_optimization():
-    def __init__(self, part, n, input, user_input, x):
+    def __init__(self, part, n, input, user_input, x,r,c,delta):
         self.part = part
         self.n = n
         self.user_input = user_input
         self.input = input
         self.x = np.array(x)
-        self.c = 2
-        self.r = 0.05
+        self.c = c
+        self.r = r
+        self.delta = 10**(-1*delta)
 
     def bracket_operator(self, x):
         if x<0:
@@ -31,7 +33,18 @@ class Constraint_optimization():
             eqn = -1*(((math.sin(2*math.pi*x[0])**3)*math.sin(2*math.pi*x[1]))/((x[0]**3)*(x[0]+x[1]))) + r*(self.bracket_operator(-1*(x[0]**2-x[1]+1)/101)**2) + r*(self.bracket_operator(-1*(1-x[0]+(x[1]-4)**2)/37)**2) + r*(self.bracket_operator(x[0]/10)**2) + r*(self.bracket_operator(x[1]/10)**2) + r*(self.bracket_operator((10-x[0])/10)**2) + r*(self.bracket_operator((10-x[1])/10)**2) 
         elif part==4:
             eqn = (x[0]+x[1]+x[2])/30000 + r*(self.bracket_operator(-1*((-1+0.0025*(x[3]+x[5]))/4))**2) + r*(self.bracket_operator(-1*((-1+0.0025*(-x[3]+x[4]+x[6]))/4))**2) + r*(self.bracket_operator(-1*((-1+0.01*(-x[5]+x[7]))/9.0))**2) + r*(self.bracket_operator(-1*((100*x[0]-x[0]*x[5]+833.33252*x[3]-83333.333)/1650000))**2) + r*(self.bracket_operator(-1*((x[1]*x[3]-x[1]*x[6]-1250*x[3]+1250*x[4])/11137500))**2) + r*(self.bracket_operator(-1*((x[2]*x[4]-x[2]*x[7]-2500*x[4]+1250000)/11125000))**2)
-    
+            eqn += r*(self.bracket_operator((x[0]-100)/10000)**2) + r*(self.bracket_operator((10000-x[0])/10000)**2) 
+            
+            eqn += r*(self.bracket_operator((x[1]-1000)/10000)**2) + r*(self.bracket_operator((10000-x[1])/10000)**2) 
+            eqn += r*(self.bracket_operator((x[2]-1000)/10000)**2) + r*(self.bracket_operator((10000-x[2])/10000)**2)
+
+            eqn += r*(self.bracket_operator((x[3]-10)/1000)**2) + r*(self.bracket_operator((1000-x[3])/1000)**2)
+            eqn += r*(self.bracket_operator((x[4]-10)/1000)**2) + r*(self.bracket_operator((1000-x[4])/1000)**2)
+            eqn += r*(self.bracket_operator((x[5]-10)/1000)**2) + r*(self.bracket_operator((1000-x[5])/1000)**2)
+            eqn += r*(self.bracket_operator((x[6]-10)/1000)**2) + r*(self.bracket_operator((1000-x[6])/1000)**2)
+            eqn += r*(self.bracket_operator((x[7]-10)/1000)**2) + r*(self.bracket_operator((1000-x[7])/1000)**2)
+
+
         return eqn
 
     def func_equation(self, x):
@@ -52,7 +65,7 @@ class Constraint_optimization():
 
     def plot_p_x_versus_iterations(self):
         x = self.f_x_array
-        print(f"f_x_array : {x}")
+        # print(f"f_x_array : {x}")
         k = self.k
 
         x_axis=np.array([])
@@ -119,9 +132,9 @@ class Constraint_optimization():
 
 
 class Penalty_function_method(Constraint_optimization):
-    def __init__(self, part, n, input, user_input, x):
+    def __init__(self, part, n, input, user_input, x,r,c,delta):
         print(f"received x value : {type(x)}")
-        super().__init__(part, n, input, user_input, x)
+        super().__init__(part, n, input, user_input, x,r,c,delta)
 
     def minimize(self):
         x = self.x
@@ -173,11 +186,11 @@ class Penalty_function_method(Constraint_optimization):
             print(f"x_1 after {k} : {x_plus_one}")
             print(f"p_0 after {k} : {p}")
             print(f"p_1 after {k} : {p_plus_one}")
-            print(f"Constraint Violation : {abs(p_plus_one-p)}")
+            print(f"Termination Value : {abs(p_plus_one-p)}")
             print(f"\n\n\n----------------------------\n\n\n")
 
             
-            if abs(p_plus_one-p)<10**-3:
+            if abs(p_plus_one-p)<self.delta:
                 break
 
             r_array.append(c*r_array[-1])
@@ -206,7 +219,7 @@ def main():
     for i, row in df.iterrows(): 
         print(f"Input received from row {i}: {row}")
         time.sleep(1)
-        part, n, user_input, x_string = row['part'], row['n'], row['user_input'], row['x']
+        part, n, user_input, x_string,r,c, delta = row['part'], row['n'], row['user_input'], row['x'], row['r'], row['c'], row['delta']
 
         print(f"--------------------------------------------------------------")
         x_array=[]
@@ -215,14 +228,13 @@ def main():
             x_array.append(float(k))
 
 
-        penalty_function_method = Penalty_function_method(part, n, 1, user_input, x_array)
+        penalty_function_method = Penalty_function_method(part, n, 1, user_input, x_array,r,c,float(delta))
 
         penalty_function_method.minimize()
-        x = penalty_function_method.results()
+        x,f_x = penalty_function_method.results()
 
-        print(f"final answer from penalty method -> x : {x}")
-
-        penalty_function_method.plot_p_x_versus_iterations()
+        print(f"final x from penalty method -> x : {x}")
+        print(f"final x from penalty method -> x : {f_x}")
 
 if __name__ == "__main__":
     main()
