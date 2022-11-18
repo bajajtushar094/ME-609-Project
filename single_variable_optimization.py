@@ -63,6 +63,8 @@ class Basic_optimization():
     def equation(self, x):
         if len(self.x_k)!=0 and len(self.s_k)!=0 : 
             x = np.add(self.x_k, np.dot(x, self.s_k))
+        elif isinstance(x, list):
+            x=x
         else:
             x = np.array([x])
             
